@@ -18,9 +18,9 @@ export async function GET(request: NextRequest) {
   let where = 'WHERE 1=1';
   const params: any[] = [];
   if (search) {
-    where += ' AND (l.subject LIKE ? OR l.body LIKE ? OR e.name LIKE ?)';
+    where += ' AND (l.subject LIKE ? OR l.body LIKE ? OR e.name LIKE ? OR e.contact_person LIKE ?)';
     const q = `%${search}%`;
-    params.push(q, q, q);
+    params.push(q, q, q, q);
   }
   if (type) {
     where += ' AND l.letter_type = ?';

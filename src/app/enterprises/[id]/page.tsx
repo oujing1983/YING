@@ -7,7 +7,7 @@ import { runMigrations } from '@/lib/db-migrate';
 import { formatDate, formatDateTime, getStatusLabel, getStatusColor, getScoreColor, getContactTypeLabel } from '@/lib/utils';
 import { LettersPanel } from '@/components/enterprise/letters-panel';
 import Link from 'next/link';
-import { ArrowLeft, Edit, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function EnterpriseDetailPage({ params }: { params: { id: string } }) {
   runMigrations();
@@ -27,6 +27,10 @@ export default function EnterpriseDetailPage({ params }: { params: { id: string 
   const analysis = db.prepare('SELECT * FROM ai_analyses WHERE enterprise_id = ?').get(id) as any;
   const letters = db.prepare('SELECT * FROM outreach_letters WHERE enterprise_id = ? ORDER BY created_at DESC').all(id) as any[];
   const followUps = db.prepare('SELECT * FROM follow_up_records WHERE enterprise_id = ? ORDER BY created_at DESC').all(id) as any[];
+
+  // 上一页/下一页
+  const prevRow = db.prepare('SELECT id, name FROM enterprises WHERE id < ? ORDER BY id DESC LIMIT 1').get(id) as any;
+  const nextRow = db.prepare('SELECT id, name FROM enterprises WHERE id > ? ORDER BY id ASC LIMIT 1').get(id) as any;
 
   const InfoTab = (
     <div className="grid md:grid-cols-2 gap-6">
@@ -218,12 +222,34 @@ export default function EnterpriseDetailPage({ params }: { params: { id: string 
             </div>
           </div>
         </div>
-        <Link href={`/enterprises/${enterprise.id}/edit`}>
-          <Button variant="outline">
-            <Edit className="w-4 h-4 mr-2" />
-            编辑
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 mr-4">
+            {prevRow ? (
+              <Link href={`/enterprises/${prevRow.id}`}>
+                <Button variant="outline" size="sm" title={prevRow.name}>
+                  <ChevronLeft className="w-4 h-4" /> 上一页
+                </Button>
+              </Link>
+            ) : (
+              <Button variant="outline" size="sm" disabled><ChevronLeft className="w-4 h-4" /> 上一页</Button>
+            )}
+            <span className="text-xs text-gray-400">|</span>
+            {nextRow ? (
+              <Link href={`/enterprises/${nextRow.id}`}>
+                <Button variant="outline" size="sm" title={nextRow.name}>
+                  下一页 <ChevronRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Button variant="outline" size="sm" disabled>下一页 <ChevronRight className="w-4 h-4" /></Button>
+            )}
+          </div>
+          <Link href={`/enterprises/${enterprise.id}/edit`}>
+            <Button variant="outline">
+              <Edit className="w-4 h-4 mr-2" />编辑
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Tabs
