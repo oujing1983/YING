@@ -98,8 +98,9 @@ export function Sidebar() {
           {navLinks}
         </div>
 
-        <div className="px-6 py-3 border-t border-gray-100 text-xs text-gray-400">
-          包装行业专用
+        <div className="px-6 py-3 border-t border-gray-100 text-xs text-gray-400 flex justify-between">
+          <span>包装行业专用</span>
+          <span>v{process.env.NEXT_PUBLIC_VERSION || '1.0.0'}</span>
         </div>
       </aside>
     </>
