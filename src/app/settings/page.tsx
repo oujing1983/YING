@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
-import { Save, Key, Settings2 } from 'lucide-react';
+import { Save, Key, Settings2, AlertTriangle } from 'lucide-react';
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -56,6 +56,29 @@ export default function SettingsPage() {
       toast('error', '保存失败');
     }
     setSaving(false);
+  };
+
+  const [clearing, setClearing] = useState(false);
+  const handleClearData = async () => {
+    if (!confirm('⚠️ 此操作将清空所有企业数据、跟进记录、开发信和导入日志，不可恢复！\n\n请确认要清空全部数据？')) return;
+    if (!confirm('再次确认：输入 "确认清空" 以继续')) return;
+    setClearing(true);
+    try {
+      const res = await fetch('/api/enterprises/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clear_enterprises' }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast('success', `已清空 ${json.deleted} 条企业数据`);
+      } else {
+        toast('error', json.error || '清空失败');
+      }
+    } catch {
+      toast('error', '清空请求失败');
+    }
+    setClearing(false);
   };
 
   return (
@@ -141,6 +164,25 @@ export default function SettingsPage() {
             <Input label="省份" value={form.factory_province} onChange={(e) => setForm({ ...form, factory_province: e.target.value })} />
             <Input label="城市" value={form.factory_city} onChange={(e) => setForm({ ...form, factory_city: e.target.value })} />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Danger Zone */}
+      <Card className="border-red-200">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+            <h3 className="font-semibold text-red-600">危险操作</h3>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600 mb-4">
+            清空所有企业数据、跟进记录、开发信和导入日志。此操作不可恢复，请在操作前备份数据。
+          </p>
+          <Button variant="danger" onClick={handleClearData} disabled={clearing}>
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            {clearing ? '清空中...' : '清空所有企业数据'}
+          </Button>
         </CardContent>
       </Card>
     </div>
