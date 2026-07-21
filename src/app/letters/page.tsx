@@ -49,26 +49,10 @@ export default function LettersPage() {
   });
 
   const fetchLetters = useCallback(async () => {
-    const res = await fetch('/api/enterprises?page_size=200');
+    // 一次查询获取所有开发信 + 企业名称
+    const res = await fetch('/api/letters/list');
     const data = await res.json();
-    setEnterprises(data.enterprises || []);
-
-    // Collect all letters from enterprise details
-    const allLetters: any[] = [];
-    for (const e of data.enterprises || []) {
-      try {
-        const detail = await fetch(`/api/enterprises/${e.id}`).then((r) => r.json());
-        if (detail.letters) {
-          allLetters.push(...detail.letters.map((l: any) => ({
-            ...l,
-            enterprise_name: e.name,
-            enterprise_id: e.id,
-          })));
-        }
-      } catch {}
-    }
-    allLetters.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    setLetters(allLetters);
+    setLetters(data.letters || []);
   }, []);
 
   useEffect(() => { fetchLetters(); }, [fetchLetters]);

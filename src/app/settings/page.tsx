@@ -246,6 +246,18 @@ export default function SettingsPage() {
             <br />
             ⚠️ QQ/163 邮箱需要用「授权码」而非登录密码。在邮箱设置 → POP3/SMTP 中开启并获取授权码。
           </div>
+          <Button variant="outline" size="sm" onClick={async () => {
+            try {
+              const res = await fetch('/api/letters/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ test: true, smtp: { host: form.smtp_host, port: parseInt(form.smtp_port) || 465, user: form.smtp_user, pass: form.smtp_pass, secure: form.smtp_secure === 'true' } }),
+              });
+              const json = await res.json();
+              if (json.success) toast('success', 'SMTP 连接成功！配置正确');
+              else toast('error', json.error || '连接失败');
+            } catch { toast('error', '测试请求失败'); }
+          }}>测试发送</Button>
         </CardContent>
       </Card>
 

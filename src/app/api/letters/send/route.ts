@@ -21,7 +21,24 @@ export async function POST(request: NextRequest) {
   ensureMigrated();
 
   try {
-    const { letter_id, to_email, to_name } = await request.json();
+    const body = await request.json();
+
+    // Test mode: verify SMTP connection
+    if (body.test) {
+      const cfg = body.smtp || getSmtpConfig();
+      if (!cfg || !cfg.host || !cfg.user || !cfg.pass) {
+        return NextResponse.json({ error: 'SMTP 未配置' }, { status: 400 });
+      }
+      const testTransporter = nodemailer.createTransport({
+        host: cfg.host, port: cfg.port || 465,
+        secure: cfg.secure !== false,
+        auth: { user: cfg.user, pass: cfg.pass },
+      });
+      await testTransporter.verify();
+      return NextResponse.json({ success: true });
+    }
+
+    const { letter_id, to_email } = body;
 
     if (!letter_id) {
       return NextResponse.json({ error: '请指定开发信' }, { status: 400 });
@@ -72,14 +89,14 @@ export async function POST(request: NextRequest) {
 
     // Send mail
     const subject = letter.subject || `${enterprise?.name || ''} 包装供应合作`;
-    const body = letter.body || '';
-    const htmlBody = body.replace(/\n/g, '<br>');
+    const letterBody = letter.body || '';
+    const htmlBody = letterBody.replace(/\n/g, '<br>');
 
     await transporter.sendMail({
       from: `"${senderName}" <${config.user}>`,
       to: to,
       subject: subject,
-      text: body,
+      text: letterBody,
       html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
         ${htmlBody}
         <hr style="margin-top:30px;border:none;border-top:1px solid #eee;">
