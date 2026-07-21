@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
-import { Save, Key, Settings2, AlertTriangle } from 'lucide-react';
+import { Save, Key, Settings2, AlertTriangle, Mail } from 'lucide-react';
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -21,6 +21,11 @@ export default function SettingsPage() {
     sender_company: '浙江XX包装有限公司',
     factory_city: '杭州',
     factory_province: '浙江省',
+    smtp_host: '',
+    smtp_port: '465',
+    smtp_user: '',
+    smtp_pass: '',
+    smtp_secure: 'true',
   });
 
   // 页面加载时读取已有设置
@@ -35,6 +40,7 @@ export default function SettingsPage() {
             const llm = s.llm_config ? JSON.parse(s.llm_config) : {};
             const sender = s.sender_info ? JSON.parse(s.sender_info) : {};
             const factory = s.factory_location ? JSON.parse(s.factory_location) : {};
+            const smtp = s.smtp_config ? JSON.parse(s.smtp_config) : {};
             setForm((prev) => ({
               llm_api_url: llm.apiUrl || prev.llm_api_url,
               llm_api_key: llm.apiKey || prev.llm_api_key,
@@ -46,6 +52,11 @@ export default function SettingsPage() {
               sender_company: sender.company || prev.sender_company,
               factory_city: factory.city || prev.factory_city,
               factory_province: factory.province || prev.factory_province,
+              smtp_host: smtp.host || prev.smtp_host,
+              smtp_port: String(smtp.port || prev.smtp_port),
+              smtp_user: smtp.user || prev.smtp_user,
+              smtp_pass: smtp.pass || prev.smtp_pass,
+              smtp_secure: smtp.secure === false ? 'false' : prev.smtp_secure,
             }));
           } catch { /* ignore parse errors */ }
         }
@@ -77,6 +88,13 @@ export default function SettingsPage() {
             factory_location: JSON.stringify({
               city: form.factory_city,
               province: form.factory_province,
+            }),
+            smtp_config: JSON.stringify({
+              host: form.smtp_host,
+              port: parseInt(form.smtp_port) || 465,
+              user: form.smtp_user,
+              pass: form.smtp_pass,
+              secure: form.smtp_secure === 'true',
             }),
           },
         }),
@@ -198,6 +216,35 @@ export default function SettingsPage() {
           <div className="grid grid-cols-2 gap-4">
             <Input label="省份" value={form.factory_province} onChange={(e) => setForm({ ...form, factory_province: e.target.value })} />
             <Input label="城市" value={form.factory_city} onChange={(e) => setForm({ ...form, factory_city: e.target.value })} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SMTP 邮件配置 */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-gray-500" />
+            <h3 className="font-semibold">邮件发送配置 (SMTP)</h3>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="SMTP 服务器" value={form.smtp_host} onChange={(e) => setForm({ ...form, smtp_host: e.target.value })} placeholder="smtp.qq.com" />
+            <Input label="端口" value={form.smtp_port} onChange={(e) => setForm({ ...form, smtp_port: e.target.value })} placeholder="465" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="邮箱账号" value={form.smtp_user} onChange={(e) => setForm({ ...form, smtp_user: e.target.value })} placeholder="your@qq.com" />
+            <Input label="授权码/密码" type="password" value={form.smtp_pass} onChange={(e) => setForm({ ...form, smtp_pass: e.target.value })} placeholder="QQ邮箱需开启POP3获取授权码" />
+          </div>
+          <div className="text-xs text-gray-500 bg-blue-50 p-3 rounded-lg">
+            <strong>常用 SMTP 配置：</strong><br />
+            • QQ邮箱：smtp.qq.com, 端口 465, SSL开启<br />
+            • 163邮箱：smtp.163.com, 端口 465, SSL开启<br />
+            • 阿里企业邮箱：smtp.qiye.aliyun.com, 端口 465<br />
+            • 腾讯企业邮箱：smtp.exmail.qq.com, 端口 465<br />
+            <br />
+            ⚠️ QQ/163 邮箱需要用"授权码"而非登录密码。在邮箱设置 → POP3/SMTP 中开启并获取授权码。
           </div>
         </CardContent>
       </Card>

@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
 import { formatDateTime } from '@/lib/utils';
-import { Wand2, Edit3, Save, X, Send, Copy, PhoneCall, MessageCircle, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { Wand2, Edit3, Save, X, Send, Copy, PhoneCall, MessageCircle, Trash2, Mail } from 'lucide-react';
 
 interface Letter {
   id: number;
@@ -115,6 +115,53 @@ export function LettersPanel({
     }
   };
 
+  // Send email
+  const [sendingId, setSendingId] = useState<number | null>(null);
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [sendLetter, setSendLetter] = useState<Letter | null>(null);
+  const [sendToEmail, setSendToEmail] = useState('');
+
+  const handleSendEmail = async () => {
+    if (!sendLetter) return;
+    setSendingId(sendLetter.id);
+    try {
+      const res = await fetch('/api/letters/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ letter_id: sendLetter.id, to_email: sendToEmail || undefined }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast('success', `邮件已发送至 ${json.to}`);
+        setShowSendDialog(false);
+        setSendLetter(null);
+        setSendToEmail('');
+      } else {
+        toast('error', json.error || '发送失败');
+      }
+    } catch {
+      toast('error', '发送失败，请检查 SMTP 配置');
+    }
+    setSendingId(null);
+  };
+
+  const openSendDialog = (l: Letter) => {
+    setSendLetter(l);
+    setSendToEmail('');
+    setShowSendDialog(true);
+  };
+
+  // WeChat: format and copy
+  const handleWechatSend = (l: Letter) => {
+    const wechatMsg = l.body
+      .replace(/尊敬的|您好|此致|敬礼/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    navigator.clipboard.writeText(wechatMsg).then(() => {
+      toast('success', '微信消息已复制，打开微信粘贴即可发送');
+    });
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
       toast('success', '已复制到剪贴板');
@@ -126,13 +173,6 @@ export function LettersPanel({
     wechat: '微信',
     phone_script: '电话话术',
     sms: '短信',
-  };
-
-  const typeAction: Record<string, { label: string; icon: React.ReactNode }> = {
-    email: { label: '发邮件', icon: <Send className="w-4 h-4" /> },
-    wechat: { label: '发微信', icon: <MessageCircle className="w-4 h-4" /> },
-    phone_script: { label: '打电话', icon: <PhoneCall className="w-4 h-4" /> },
-    sms: { label: '发短信', icon: <Send className="w-4 h-4" /> },
   };
 
   return (
@@ -229,16 +269,57 @@ export function LettersPanel({
                   <Button variant="outline" size="sm" onClick={() => copyToClipboard(l.body)}>
                     <Copy className="w-4 h-4 mr-1" /> 复制
                   </Button>
-                  <Button variant="outline" size="sm">
-                    {typeAction[l.letter_type]?.icon}
-                    <span className="ml-1">{typeAction[l.letter_type]?.label}</span>
-                  </Button>
+                  {l.letter_type === 'email' || l.letter_type === 'sms' ? (
+                    <Button variant="outline" size="sm" onClick={() => openSendDialog(l)}>
+                      <Mail className="w-4 h-4 mr-1" /> 发邮件
+                    </Button>
+                  ) : l.letter_type === 'wechat' ? (
+                    <Button variant="outline" size="sm" onClick={() => handleWechatSend(l)}>
+                      <MessageCircle className="w-4 h-4 mr-1" /> 复制到微信
+                    </Button>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(l.body)}>
+                      <PhoneCall className="w-4 h-4 mr-1" /> 复制话术
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
         ))
       )}
+
+      {/* Send Email Dialog */}
+      <Dialog open={showSendDialog} onClose={() => { setShowSendDialog(false); setSendLetter(null); }} title="发送邮件">
+        {sendLetter && (
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">收件人邮箱</label>
+              <input
+                type="email"
+                placeholder="customer@example.com"
+                value={sendToEmail}
+                onChange={(e) => setSendToEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                autoFocus
+              />
+              <p className="text-xs text-gray-400 mt-1">留空则自动使用企业档案中的邮箱</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">邮件标题</label>
+              <p className="text-sm bg-gray-50 p-2 rounded">{sendLetter.subject || '(无标题)'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">邮件正文预览</label>
+              <pre className="text-xs bg-gray-50 p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">{sendLetter.body}</pre>
+            </div>
+            <Button onClick={handleSendEmail} disabled={sendingId === sendLetter.id} className="w-full">
+              <Send className="w-4 h-4 mr-2" />
+              {sendingId === sendLetter.id ? '发送中...' : '发送邮件'}
+            </Button>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }
