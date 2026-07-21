@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,11 +23,41 @@ export default function SettingsPage() {
     factory_province: '浙江省',
   });
 
+  // 页面加载时读取已有设置
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings) {
+          const s = data.settings;
+          try {
+            const llm = s.llm_config ? JSON.parse(s.llm_config) : {};
+            const sender = s.sender_info ? JSON.parse(s.sender_info) : {};
+            const factory = s.factory_location ? JSON.parse(s.factory_location) : {};
+            setForm((prev) => ({
+              llm_api_url: llm.apiUrl || prev.llm_api_url,
+              llm_api_key: llm.apiKey || prev.llm_api_key,
+              llm_model: llm.model || prev.llm_model,
+              llm_temperature: String(llm.temperature ?? prev.llm_temperature),
+              sender_name: sender.name || prev.sender_name,
+              sender_phone: sender.phone || prev.sender_phone,
+              sender_wechat: sender.wechat || prev.sender_wechat,
+              sender_company: sender.company || prev.sender_company,
+              factory_city: factory.city || prev.factory_city,
+              factory_province: factory.province || prev.factory_province,
+            }));
+          } catch { /* ignore parse errors */ }
+        }
+        setLoaded(true);
+      })
+      .catch(() => setLoaded(true));
+  }, []);
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Save LLM config
-      await fetch('/api/settings', {
+      const res = await fetch('/api/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -51,9 +81,14 @@ export default function SettingsPage() {
           },
         }),
       });
-      toast('success', '设置已保存');
+      const json = await res.json();
+      if (json.success) {
+        toast('success', '设置已保存');
+      } else {
+        toast('error', json.error || '保存失败');
+      }
     } catch {
-      toast('error', '保存失败');
+      toast('error', '网络请求失败，请检查服务器连接');
     }
     setSaving(false);
   };
