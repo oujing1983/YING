@@ -75,11 +75,17 @@ export default function ImportPage() {
         setImportData(data);
         // Auto-set mapping from detection (使用索引作为 key，避免重复列名问题)
         const autoMapping: Record<number, string> = {};
+        let autoCount = 0;
         data.columnDetection.forEach((d: ColumnDetection, idx: number) => {
           autoMapping[idx] = d.targetField || '';
+          if (d.targetField) autoCount++;
         });
         setMapping(autoMapping);
         setStep('mapping');
+        // 如果自动识别不到 3 个字段，提示使用 AI
+        if (autoCount < 3 && data.totalRows > 0) {
+          setTimeout(() => toast('info', `自动识别仅匹配 ${autoCount} 个字段，建议点击"AI 智能解析"获得更准确的结果`), 500);
+        }
       }
     } catch {
       toast('error', '文件上传失败');
