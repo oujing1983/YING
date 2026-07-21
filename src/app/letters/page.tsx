@@ -8,7 +8,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Select } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast';
 import { formatDateTime } from '@/lib/utils';
-import { Copy, MessagesSquare, Mail, Phone, FileText } from 'lucide-react';
+import { Copy, MessagesSquare, Mail, Phone, FileText, Search, X } from 'lucide-react';
 import type { Enterprise } from '@/types';
 
 export default function LettersPage() {
@@ -19,6 +19,19 @@ export default function LettersPage() {
   const [genEnterpriseId, setGenEnterpriseId] = useState(0);
   const [genType, setGenType] = useState('email');
   const [preview, setPreview] = useState<any>(null);
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+
+  // 搜索过滤
+  const filteredLetters = letters.filter((l) => {
+    const q = search.toLowerCase();
+    const matchSearch = !q ||
+      (l.enterprise_name && l.enterprise_name.toLowerCase().includes(q)) ||
+      (l.subject && l.subject.toLowerCase().includes(q)) ||
+      (l.body && l.body.toLowerCase().includes(q));
+    const matchType = !typeFilter || l.letter_type === typeFilter;
+    return matchSearch && matchType;
+  });
 
   const fetchLetters = useCallback(async () => {
     const res = await fetch('/api/enterprises?page_size=200');
@@ -142,6 +155,47 @@ export default function LettersPage() {
         </div>
       </Dialog>
 
+      {/* Search Bar */}
+      {letters.length > 0 && (
+        <Card>
+          <CardContent className="py-3">
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="搜索企业名称、标题或正文..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm"
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm w-32"
+              >
+                <option value="">全部类型</option>
+                <option value="email">邮件</option>
+                <option value="wechat">微信</option>
+                <option value="phone_script">电话</option>
+                <option value="sms">短信</option>
+              </select>
+            </div>
+            {search && (
+              <p className="text-xs text-gray-400 mt-2">
+                找到 {filteredLetters.length} / {letters.length} 条结果
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Letters List */}
       {letters.length === 0 ? (
         <Card>
@@ -153,7 +207,16 @@ export default function LettersPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          {letters.map((l) => {
+          {filteredLetters.length === 0 ? (
+            <Card>
+              <CardContent className="py-8 text-center text-gray-500">
+                <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p>未找到匹配的开发信</p>
+                <p className="text-xs mt-1">试试其他关键词或清除筛选</p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredLetters.map((l) => {
             return (
               <Card key={l.id}>
                 <CardHeader>
@@ -182,7 +245,8 @@ export default function LettersPage() {
                 </CardContent>
               </Card>
             );
-          })}
+          })
+        )}
         </div>
       )}
     </div>
