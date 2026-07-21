@@ -107,6 +107,11 @@ export async function POST(request: NextRequest) {
     // Mark as sent
     db.prepare(`UPDATE outreach_letters SET is_sent = 1, sent_at = datetime('now') WHERE id = ?`).run(letter_id);
 
+    // Auto-create CRM follow-up record
+    const entId = letter.enterprise_id;
+    db.prepare(`INSERT INTO follow_up_records (enterprise_id, contact_type, summary, next_action, is_completed) VALUES (?, 'email', ?, ?, 1)`)
+      .run(entId, `发送邮件至 ${to}，标题：${subject}`, '');
+
     return NextResponse.json({ success: true, to });
   } catch (error: any) {
     return NextResponse.json({ error: `发送失败: ${error.message}` }, { status: 500 });
