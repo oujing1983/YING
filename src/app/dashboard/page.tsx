@@ -6,6 +6,8 @@ import { formatDate, getStatusLabel, getStatusColor, getScoreColor } from '@/lib
 import Link from 'next/link';
 import { TrendingUp, Users, Target, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function DashboardPage() {
   runMigrations();
   const db = getDb();
