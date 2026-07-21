@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog } from '@/components/ui/dialog';
 import { Select } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast';
-import { formatDateTime } from '@/lib/utils';
+import { formatDateTime, copyText } from '@/lib/utils';
 import { Copy, MessagesSquare, Mail, Phone, FileText, Search, X, ChevronDown } from 'lucide-react';
 import type { Enterprise } from '@/types';
 
@@ -80,9 +80,15 @@ export default function LettersPage() {
     }
   };
 
+  const [editingLetterId, setEditingLetterId] = useState<number | null>(null);
+  const [editText, setEditText] = useState('');
+
   const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast('success', '已复制到剪贴板');
+    if (copyText(text)) {
+      toast('success', '已复制到剪贴板');
+    } else {
+      toast('error', '复制失败，请手动复制');
+    }
   };
 
   const typeLabel: Record<string, string> = { email: '邮件', wechat: '微信', phone_script: '电话话术', sms: '短信' };
@@ -274,10 +280,11 @@ export default function LettersPage() {
                     <Button variant="ghost" size="sm" onClick={() => handleCopy(l.body)}>
                       <Copy className="w-3 h-3 mr-1" />复制
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => {
-                      setPreview(l);
-                    }}>
+                    <Button variant="ghost" size="sm" onClick={() => setPreview(l)}>
                       展开
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => { setEditingLetterId(l.id); setEditText(l.body); }}>
+                      编辑
                     </Button>
                   </div>
                 </CardContent>
@@ -287,6 +294,33 @@ export default function LettersPage() {
         )}
         </div>
       )}
+
+      {/* Edit Letter Dialog */}
+      <Dialog open={!!editingLetterId} onClose={() => setEditingLetterId(null)} title="编辑开发信" maxWidth="max-w-2xl">
+        <div className="space-y-3">
+          <textarea
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm min-h-[250px] font-sans"
+            rows={12}
+          />
+          <div className="flex gap-2">
+            <Button onClick={() => {
+              if (editingLetterId) {
+                fetch('/api/letters', {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ id: editingLetterId, body: editText }),
+                }).then(r => r.json()).then(j => {
+                  if (j.success) { toast('success', '已保存'); fetchLetters(); setEditingLetterId(null); }
+                  else toast('error', j.error || '保存失败');
+                });
+              }
+            }} className="flex-1">保存修改</Button>
+            <Button variant="outline" onClick={() => setEditingLetterId(null)}>取消</Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

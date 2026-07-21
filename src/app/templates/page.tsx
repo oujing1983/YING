@@ -9,13 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast';
-import { Copy, FileText, Plus } from 'lucide-react';
+import { copyText } from '@/lib/utils';
+import { Copy, FileText, Plus, Edit3, Save, X } from 'lucide-react';
 
 export default function TemplatesPage() {
   const { toast } = useToast();
   const [templates, setTemplates] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', type: 'email', subject_template: '', body_template: '', category: 'general' });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingTpl, setEditingTpl] = useState<any>(null);
 
   const fetchTemplates = useCallback(async () => {
     const res = await fetch('/api/templates');
@@ -71,8 +74,11 @@ export default function TemplatesPage() {
               )}
               <pre className="text-sm text-gray-600 whitespace-pre-wrap font-sans bg-gray-50 p-3 rounded-lg line-clamp-3">{t.body_template}</pre>
               <div className="flex gap-2 mt-2">
-                <Button variant="ghost" size="sm" onClick={() => { navigator.clipboard.writeText(t.body_template); toast('success', '已复制'); }}>
+                <Button variant="ghost" size="sm" onClick={() => { copyText(t.body_template); toast('success', '已复制'); }}>
                   <Copy className="w-3 h-3 mr-1" />复制
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => { setEditingId(t.id); setEditingTpl({ ...t }); }}>
+                  <Edit3 className="w-3 h-3 mr-1" />编辑
                 </Button>
               </div>
             </CardContent>
@@ -86,6 +92,27 @@ export default function TemplatesPage() {
           </Card>
         )}
       </div>
+
+      {/* Edit Template Dialog */}
+      <Dialog open={!!editingId} onClose={() => { setEditingId(null); setEditingTpl(null); }} title="编辑模板" maxWidth="max-w-2xl">
+        {editingTpl && (
+          <div className="space-y-3">
+            <Input label="模板名称" value={editingTpl.name} onChange={(e) => setEditingTpl({ ...editingTpl, name: e.target.value })} />
+            <Input label="标题模板" value={editingTpl.subject_template} onChange={(e) => setEditingTpl({ ...editingTpl, subject_template: e.target.value })} />
+            <Textarea label="正文模板" value={editingTpl.body_template} onChange={(e) => setEditingTpl({ ...editingTpl, body_template: e.target.value })} rows={10} />
+            <Button onClick={async () => {
+              await fetch('/api/templates', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(editingTpl),
+              });
+              toast('success', '已保存');
+              setEditingId(null);
+              fetchTemplates();
+            }} className="w-full">保存修改</Button>
+          </div>
+        )}
+      </Dialog>
 
       {/* New Template Dialog */}
       <Dialog open={showForm} onClose={() => setShowForm(false)} title="新建模板" maxWidth="max-w-2xl">
