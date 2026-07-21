@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'admin888';
+export const dynamic = 'force-dynamic';
+const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'qwe123qwe';
 
 export async function POST(request: NextRequest) {
   const { password } = await request.json();
