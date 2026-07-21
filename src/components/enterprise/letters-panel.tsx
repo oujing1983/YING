@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/toast';
 import { formatDateTime } from '@/lib/utils';
-import { Wand2, Edit3, Save, X, Send, Copy, PhoneCall, MessageCircle } from 'lucide-react';
+import { Wand2, Edit3, Save, X, Send, Copy, PhoneCall, MessageCircle, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 interface Letter {
@@ -44,7 +44,7 @@ export function LettersPanel({
       const json = await res.json();
       if (json.success) {
         setLetters((prev) => [{
-          id: Date.now(),
+          id: json.id,  // 使用数据库真实 ID
           letter_type: letterType,
           subject: json.subject,
           body: json.body,
@@ -92,6 +92,26 @@ export function LettersPanel({
       }
     } catch {
       toast('error', '保存失败');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('确定删除这条开发信吗？')) return;
+    try {
+      const res = await fetch('/api/letters', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setLetters((prev) => prev.filter((l) => l.id !== id));
+        toast('success', '已删除');
+      } else {
+        toast('error', json.error || '删除失败');
+      }
+    } catch {
+      toast('error', '删除失败');
     }
   };
 
@@ -177,9 +197,14 @@ export function LettersPanel({
                       </Button>
                     </>
                   ) : (
-                    <Button variant="ghost" size="sm" onClick={() => startEdit(l)}>
-                      <Edit3 className="w-4 h-4 text-gray-400" />
-                    </Button>
+                    <>
+                      <Button variant="ghost" size="sm" onClick={() => startEdit(l)}>
+                        <Edit3 className="w-4 h-4 text-gray-400" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(l.id)}>
+                        <Trash2 className="w-4 h-4 text-red-400" />
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
