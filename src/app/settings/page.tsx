@@ -244,7 +244,7 @@ export default function SettingsPage() {
             • 阿里企业邮箱：smtp.qiye.aliyun.com, 端口 465<br />
             • 腾讯企业邮箱：smtp.exmail.qq.com, 端口 465<br />
             <br />
-            ⚠️ QQ/163 邮箱需要用"授权码"而非登录密码。在邮箱设置 → POP3/SMTP 中开启并获取授权码。
+            ⚠️ QQ/163 邮箱需要用「授权码」而非登录密码。在邮箱设置 → POP3/SMTP 中开启并获取授权码。
           </div>
         </CardContent>
       </Card>
