@@ -37,9 +37,9 @@ export async function GET(request: NextRequest) {
   const params: (string | number)[] = [];
 
   if (search) {
-    where += ' AND (name LIKE ? OR business_scope LIKE ? OR industry_category LIKE ? OR main_products LIKE ?)';
+    where += ' AND (name LIKE ? OR business_scope LIKE ? OR industry_category LIKE ? OR main_products LIKE ? OR contact_person LIKE ?)';
     const q = `%${search}%`;
-    params.push(q, q, q, q);
+    params.push(q, q, q, q, q);
   }
   if (industry) {
     where += ' AND industry_category LIKE ?';

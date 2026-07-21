@@ -236,7 +236,7 @@ export default function LettersPage() {
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="搜索企业名称、标题或正文..."
+                  placeholder="搜索企业名称、法人、标题或正文..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-9 pr-8 py-2 border border-gray-300 rounded-lg text-sm"
