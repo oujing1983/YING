@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   // 一次查询获取所有开发信及企业名称
   const letters = db.prepare(`
-    SELECT l.*, e.name as enterprise_name
+    SELECT l.*, e.name as enterprise_name, e.contact_email as enterprise_email
     FROM outreach_letters l
     LEFT JOIN enterprises e ON l.enterprise_id = e.id
     ${where}

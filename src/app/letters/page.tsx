@@ -8,7 +8,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Select } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast';
 import { formatDateTime, copyText } from '@/lib/utils';
-import { Copy, MessagesSquare, Mail, Phone, FileText, Search, X, ChevronDown } from 'lucide-react';
+import { Copy, MessagesSquare, Mail, Phone, FileText, Search, X, ChevronDown, Trash2, Send } from 'lucide-react';
 import type { Enterprise } from '@/types';
 
 export default function LettersPage() {
@@ -80,6 +80,9 @@ export default function LettersPage() {
 
   const [editingLetterId, setEditingLetterId] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
+  const [sendLetter, setSendLetter] = useState<any>(null);
+  const [sendToEmail, setSendToEmail] = useState('');
+  const [sending, setSending] = useState(false);
 
   const handleCopy = (text: string) => {
     if (copyText(text)) {
@@ -87,6 +90,32 @@ export default function LettersPage() {
     } else {
       toast('error', '复制失败，请手动复制');
     }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('确定删除这条开发信吗？')) return;
+    try {
+      const res = await fetch('/api/letters', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+      const json = await res.json();
+      if (json.success) { toast('success', '已删除'); fetchLetters(); }
+      else toast('error', json.error || '删除失败');
+    } catch { toast('error', '删除失败'); }
+  };
+
+  const handleSend = async () => {
+    if (!sendLetter) return;
+    setSending(true);
+    try {
+      const res = await fetch('/api/letters/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ letter_id: sendLetter.id, to_email: sendToEmail || undefined }),
+      });
+      const json = await res.json();
+      if (json.success) { toast('success', `已发送至 ${json.to}`); setSendLetter(null); setSendToEmail(''); }
+      else toast('error', json.error || '发送失败');
+    } catch { toast('error', '发送失败，请确认 SMTP 已配置'); }
+    setSending(false);
   };
 
   const typeLabel: Record<string, string> = { email: '邮件', wechat: '微信', phone_script: '电话话术', sms: '短信' };
@@ -274,7 +303,7 @@ export default function LettersPage() {
                 <CardContent>
                   {l.subject && <p className="text-sm font-medium text-gray-700 mb-2">{l.subject}</p>}
                   <pre className="text-sm text-gray-600 whitespace-pre-wrap font-sans line-clamp-4">{l.body}</pre>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex gap-2 mt-3 flex-wrap">
                     <Button variant="ghost" size="sm" onClick={() => handleCopy(l.body)}>
                       <Copy className="w-3 h-3 mr-1" />复制
                     </Button>
@@ -284,6 +313,14 @@ export default function LettersPage() {
                     <Button variant="ghost" size="sm" onClick={() => { setEditingLetterId(l.id); setEditText(l.body); }}>
                       编辑
                     </Button>
+                    {(l.letter_type === 'email' || l.letter_type === 'sms') && (
+                      <Button variant="ghost" size="sm" onClick={() => { setSendLetter(l); setSendToEmail(''); }}>
+                        <Send className="w-3 h-3 mr-1 text-blue-500" />发送
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(l.id)}>
+                      <Trash2 className="w-3 h-3 mr-1 text-red-400" />删除
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -292,6 +329,34 @@ export default function LettersPage() {
         )}
         </div>
       )}
+
+      {/* Send Email Dialog */}
+      <Dialog open={!!sendLetter} onClose={() => { setSendLetter(null); setSendToEmail(''); }} title="发送邮件">
+        {sendLetter && (
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">收件人邮箱</label>
+              <input type="email" placeholder="customer@example.com" value={sendToEmail}
+                onChange={(e) => setSendToEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" autoFocus />
+              {sendLetter.enterprise_email && (
+                <p className="text-xs text-blue-600 mt-1">📧 企业邮箱：{sendLetter.enterprise_email}（留空自动使用此邮箱）</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">标题</label>
+              <p className="text-sm bg-gray-50 p-2 rounded">{sendLetter.subject || '(无标题)'}</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">正文预览</label>
+              <pre className="text-xs bg-gray-50 p-2 rounded max-h-32 overflow-y-auto whitespace-pre-wrap font-sans">{sendLetter.body}</pre>
+            </div>
+            <Button onClick={handleSend} disabled={sending} className="w-full">
+              <Send className="w-4 h-4 mr-2" />{sending ? '发送中...' : '确认发送'}
+            </Button>
+          </div>
+        )}
+      </Dialog>
 
       {/* Edit Letter Dialog */}
       <Dialog open={!!editingLetterId} onClose={() => setEditingLetterId(null)} title="编辑开发信" maxWidth="max-w-2xl">
