@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Mark as sent
-    db.prepare('UPDATE outreach_letters SET is_sent = 1, sent_at = datetime("now") WHERE id = ?').run(letter_id);
+    db.prepare(`UPDATE outreach_letters SET is_sent = 1, sent_at = datetime('now') WHERE id = ?`).run(letter_id);
 
     return NextResponse.json({ success: true, to });
   } catch (error: any) {
