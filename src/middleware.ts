@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const AUTH_COOKIE = 'lead_ai_auth';
 // 默认密码，可在服务器环境变量中覆盖
-const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'admin888';
+const AUTH_PASSWORD = process.env.AUTH_PASSWORD || 'qwe123qwe';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

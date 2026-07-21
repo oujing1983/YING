@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { runMigrations } from '@/lib/db-migrate';
 
+export const dynamic = 'force-dynamic';
+
 let migrated = false;
 function ensureMigrated() { if (!migrated) { runMigrations(); migrated = true; } }
 
