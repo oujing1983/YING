@@ -54,14 +54,29 @@ export async function POST(request: NextRequest) {
     for (const row of rows) {
       // Apply column mapping (index-based, uses headers array to resolve column name)
       const mapped: Record<string, any> = {};
+      const regionParts: string[] = [];
       for (const [indexStr, targetField] of Object.entries(columnMapping)) {
         if (targetField && typeof targetField === 'string') {
           const index = parseInt(indexStr, 10);
           const sourceColumn = headers ? headers[index] : indexStr;
           if (sourceColumn !== undefined && sourceColumn !== null) {
-            mapped[targetField] = row[sourceColumn];
+            const val = row[sourceColumn];
+            if (val === undefined || val === null || String(val).trim() === '') continue;
+            const strVal = String(val).trim();
+            if (targetField === 'region') {
+              regionParts.push(strVal);
+            } else {
+              // 优先使用第一个非空值，避免"往年年报电话"覆盖"年报电话"
+              if (!mapped[targetField]) {
+                mapped[targetField] = strVal;
+              }
+            }
           }
         }
+      }
+      // 合并地址列（省份+城市+区县）
+      if (regionParts.length > 0) {
+        mapped.region = Array.from(new Set(regionParts)).join('');
       }
 
       // Skip if no name
