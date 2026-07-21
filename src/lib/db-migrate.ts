@@ -92,8 +92,6 @@ export function runMigrations(): void {
       sent_at TEXT DEFAULT NULL
     );
 
-    -- 为已存在的数据库补充 updated_at 列
-    ALTER TABLE outreach_letters ADD COLUMN updated_at TEXT DEFAULT (datetime('now'));
 
     CREATE TABLE IF NOT EXISTS email_templates (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
