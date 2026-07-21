@@ -22,6 +22,20 @@ export default function LettersPage() {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [entSearch, setEntSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<Enterprise[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  // 动态搜索企业（后端 API 搜索全部数据）
+  const doEnterpriseSearch = async (q: string) => {
+    if (!q || q.length < 1) { setSearchResults([]); return; }
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/enterprises?page_size=50&search=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      setSearchResults(data.enterprises || []);
+    } catch {}
+    setSearching(false);
+  };
 
   // 搜索过滤
   const filteredLetters = letters.filter((l) => {
@@ -135,28 +149,28 @@ export default function LettersPage() {
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="搜索企业名称..."
+                  placeholder="输入关键词搜索全部企业..."
                   value={entSearch}
-                  onChange={(e) => setEntSearch(e.target.value)}
+                  onChange={(e) => { setEntSearch(e.target.value); doEnterpriseSearch(e.target.value); }}
                   className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
                   autoFocus
                 />
                 {entSearch && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                    {enterprises
-                      .filter(e => e.name.toLowerCase().includes(entSearch.toLowerCase()))
-                      .slice(0, 20)
-                      .map(e => (
+                    {searching ? (
+                      <p className="px-3 py-2 text-sm text-gray-400">搜索中...</p>
+                    ) : searchResults.length > 0 ? (
+                      searchResults.slice(0, 20).map(e => (
                         <button
                           key={e.id}
-                          onClick={() => { setGenEnterpriseId(e.id); setEntSearch(''); }}
+                          onClick={() => { setGenEnterpriseId(e.id); setEntSearch(''); setSearchResults([]); }}
                           className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-b border-gray-50 last:border-0"
                         >
                           <span className="font-medium">{e.name}</span>
                           <span className="text-gray-400 ml-2 text-xs">{e.industry_category || ''} {e.score_level}级</span>
                         </button>
-                      ))}
-                    {enterprises.filter(e => e.name.toLowerCase().includes(entSearch.toLowerCase())).length === 0 && (
+                      ))
+                    ) : (
                       <p className="px-3 py-2 text-sm text-gray-400">未找到匹配企业</p>
                     )}
                   </div>
