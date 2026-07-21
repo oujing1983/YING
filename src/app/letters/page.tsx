@@ -19,6 +19,7 @@ export default function LettersPage() {
   const [genEnterpriseId, setGenEnterpriseId] = useState(0);
   const [genType, setGenType] = useState('email');
   const [preview, setPreview] = useState<any>(null);
+  const [expandLetter, setExpandLetter] = useState<any>(null);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [entSearch, setEntSearch] = useState('');
@@ -307,7 +308,7 @@ export default function LettersPage() {
                     <Button variant="ghost" size="sm" onClick={() => handleCopy(l.body)}>
                       <Copy className="w-3 h-3 mr-1" />复制
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setPreview(l)}>
+                    <Button variant="ghost" size="sm" onClick={() => setExpandLetter(l)}>
                       展开
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => { setEditingLetterId(l.id); setEditText(l.body); }}>
@@ -329,6 +330,28 @@ export default function LettersPage() {
         )}
         </div>
       )}
+
+      {/* Expand/Preview Dialog */}
+      <Dialog open={!!expandLetter} onClose={() => setExpandLetter(null)} title="开发信详情" maxWidth="max-w-2xl">
+        {expandLetter && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">{expandLetter.enterprise_name}</span>
+              <Badge>{typeLabel[expandLetter.letter_type] || expandLetter.letter_type}</Badge>
+            </div>
+            {expandLetter.subject && <p className="text-sm font-medium text-gray-700 bg-gray-50 p-2 rounded">{expandLetter.subject}</p>}
+            <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans bg-gray-50 p-3 rounded-lg max-h-96 overflow-y-auto">{expandLetter.body}</pre>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => handleCopy(expandLetter.body)}><Copy className="w-3 h-3 mr-1" />复制</Button>
+              {(expandLetter.letter_type === 'email' || expandLetter.letter_type === 'sms') && (
+                <Button variant="outline" size="sm" onClick={() => { setSendLetter(expandLetter); setExpandLetter(null); setSendToEmail(''); }}>
+                  <Send className="w-3 h-3 mr-1" />发送
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Dialog>
 
       {/* Send Email Dialog */}
       <Dialog open={!!sendLetter} onClose={() => { setSendLetter(null); setSendToEmail(''); }} title="发送邮件">
