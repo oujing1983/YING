@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: '请指定开发信ID' }, { status: 400 });
     }
 
-    db.prepare('UPDATE outreach_letters SET subject = ?, body = ?, updated_at = datetime("now") WHERE id = ?')
+    db.prepare(`UPDATE outreach_letters SET subject = ?, body = ?, updated_at = datetime('now') WHERE id = ?`)
       .run(subject || '', body || '', id);
 
     return NextResponse.json({ success: true });
