@@ -368,13 +368,13 @@ export default function LettersPage() {
               {sendLetter.enterprise_email ? (
                 <div className="space-y-2">
                   <button
-                    onClick={() => setSendToEmail(sendLetter.enterprise_email)}
+                    onClick={() => setSendToEmail(sendToEmail === sendLetter.enterprise_email ? '' : sendLetter.enterprise_email)}
                     className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${sendToEmail === sendLetter.enterprise_email ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
                   >
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm font-medium">{sendLetter.enterprise_email}</span>
-                      <span className="text-xs text-green-600 ml-auto">企业档案邮箱</span>
+                      <span className="text-sm font-medium break-all">{sendLetter.enterprise_email}</span>
+                      <span className="text-xs text-green-600 ml-auto flex-shrink-0">{sendToEmail === sendLetter.enterprise_email ? '✓ 已选' : '点击选择'}</span>
                     </div>
                   </button>
                   <div className="relative">

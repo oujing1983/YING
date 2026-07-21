@@ -302,13 +302,13 @@ export function LettersPanel({
               {enterpriseEmail ? (
                 <div className="space-y-2">
                   <button
-                    onClick={() => setSendToEmail(enterpriseEmail)}
+                    onClick={() => setSendToEmail(sendToEmail === enterpriseEmail ? '' : enterpriseEmail)}
                     className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${sendToEmail === enterpriseEmail ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
                   >
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm font-medium">{enterpriseEmail}</span>
-                      <span className="text-xs text-green-600 ml-auto">企业档案邮箱</span>
+                      <span className="text-sm font-medium break-all">{enterpriseEmail}</span>
+                      <span className="text-xs text-green-600 ml-auto flex-shrink-0">{sendToEmail === enterpriseEmail ? '✓ 已选' : '点击选择'}</span>
                     </div>
                   </button>
                   {enterprisePhone && <p className="text-xs text-gray-500">📞 电话：{enterprisePhone}</p>}
