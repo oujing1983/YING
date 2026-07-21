@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { getStatusLabel, getStatusColor, getScoreColor, formatDate } from '@/lib/utils';
-import { Plus, Upload, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { Plus, Upload, ChevronLeft, ChevronRight, Trash2, CheckSquare, Square } from 'lucide-react';
 import type { Enterprise, EnterpriseListResponse } from '@/types';
 
 export default function EnterpriseListPage() {
@@ -17,6 +17,7 @@ export default function EnterpriseListPage() {
   const [scoreFilter, setScoreFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -43,6 +44,45 @@ export default function EnterpriseListPage() {
     fetchData();
   };
 
+  const toggleSelect = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (!data) return;
+    const currentIds = data.enterprises.map((e: Enterprise) => e.id);
+    if (selectedIds.size === currentIds.length && currentIds.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(currentIds));
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`确定删除选中的 ${selectedIds.size} 家企业吗？此操作不可恢复。`)) return;
+
+    const ids = Array.from(selectedIds);
+    const res = await fetch('/api/enterprises', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids }),
+    });
+    const json = await res.json();
+    if (json.success) {
+      setSelectedIds(new Set());
+      fetchData();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -53,6 +93,12 @@ export default function EnterpriseListPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {selectedIds.size > 0 && (
+            <Button variant="danger" onClick={handleBatchDelete}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              删除选中 ({selectedIds.size})
+            </Button>
+          )}
           <Link href="/enterprises/import">
             <Button variant="outline">
               <Upload className="w-4 h-4 mr-2" />
@@ -76,7 +122,7 @@ export default function EnterpriseListPage() {
               <Input
                 placeholder="搜索企业名称、经营范围..."
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); setSelectedIds(new Set()); }}
               />
             </div>
             <Select
@@ -89,7 +135,7 @@ export default function EnterpriseListPage() {
                 { value: 'D', label: 'D 级' },
               ]}
               value={scoreFilter}
-              onChange={(e) => { setScoreFilter(e.target.value); setPage(1); }}
+              onChange={(e) => { setScoreFilter(e.target.value); setPage(1); setSelectedIds(new Set()); }}
               className="w-[140px]"
             />
             <Select
@@ -104,7 +150,7 @@ export default function EnterpriseListPage() {
                 { value: 'lost', label: '已放弃' },
               ]}
               value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1); setSelectedIds(new Set()); }}
               className="w-[140px]"
             />
           </div>
@@ -129,6 +175,14 @@ export default function EnterpriseListPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-100">
+                      <th className="px-3 py-3 w-10">
+                        <button onClick={toggleSelectAll} className="text-gray-400 hover:text-blue-600">
+                          {selectedIds.size > 0 && data && selectedIds.size === data.enterprises.length
+                            ? <CheckSquare className="w-4 h-4 text-blue-600" />
+                            : <Square className="w-4 h-4" />
+                          }
+                        </button>
+                      </th>
                       <th className="text-left px-6 py-3 text-xs font-medium text-gray-500">企业名称</th>
                       <th className="text-left px-6 py-3 text-xs font-medium text-gray-500">行业</th>
                       <th className="text-left px-6 py-3 text-xs font-medium text-gray-500">地区</th>
@@ -141,6 +195,14 @@ export default function EnterpriseListPage() {
                   <tbody>
                     {data.enterprises.map((e: Enterprise) => (
                       <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="px-3 py-3">
+                          <button onClick={() => toggleSelect(e.id)} className="text-gray-400 hover:text-blue-600">
+                            {selectedIds.has(e.id)
+                              ? <CheckSquare className="w-4 h-4 text-blue-600" />
+                              : <Square className="w-4 h-4" />
+                            }
+                          </button>
+                        </td>
                         <td className="px-6 py-3">
                           <Link href={`/enterprises/${e.id}`} className="text-sm font-medium text-blue-600 hover:underline">
                             {e.name}

@@ -139,3 +139,29 @@ export async function POST(request: NextRequest) {
   const newRow = db.prepare('SELECT * FROM enterprises WHERE id = ?').get(result.lastInsertRowid);
   return NextResponse.json(newRow, { status: 201 });
 }
+
+export async function DELETE(request: NextRequest) {
+  ensureMigrated();
+  const db = getDb();
+
+  try {
+    const { ids } = await request.json();
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: '请提供要删除的企业 ID 列表' }, { status: 400 });
+    }
+
+    // 使用参数化查询批量删除
+    const placeholders = ids.map(() => '?').join(',');
+    const result = db.prepare(
+      `DELETE FROM enterprises WHERE id IN (${placeholders})`
+    ).run(...ids);
+
+    return NextResponse.json({
+      success: true,
+      deleted: result.changes,
+    });
+  } catch (error: any) {
+    return NextResponse.json({ error: `批量删除失败: ${error.message}` }, { status: 500 });
+  }
+}
