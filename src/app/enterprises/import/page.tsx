@@ -87,16 +87,25 @@ export default function ImportPage() {
     setProcessing(false);
   };
 
-  // AI 智能分类
+  // AI 智能分类（发送原始数据行，让 AI 自动识别表头和列映射）
   const [aiClassifying, setAiClassifying] = useState(false);
+  const [aiHeaderRowIdx, setAiHeaderRowIdx] = useState<number | null>(null);
   const handleAiClassify = async () => {
-    if (!importData) return;
+    if (!importData || !fileRef.current) return;
     setAiClassifying(true);
     try {
+      // 读取原始文件的前几行发给 AI
+      const buffer = await fileRef.current.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const data: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      const sampleRows = data.slice(0, 10);
+
       const res = await fetch('/api/import/ai-classify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ headers: importData.headers }),
+        body: JSON.stringify({ rows: sampleRows }),
       });
       const json = await res.json();
       if (json.success && json.mapping) {
@@ -107,7 +116,12 @@ export default function ImportPage() {
           }
           return next;
         });
-        toast('success', `AI 已识别 ${Object.keys(json.mapping).length} 个字段`);
+        if (json.headerRowIndex !== undefined && json.headerRowIndex > 0) {
+          setAiHeaderRowIdx(json.headerRowIndex);
+          toast('success', `AI 已识别表头(第${json.headerRowIndex + 1}行)并映射 ${Object.keys(json.mapping).length} 个字段`);
+        } else {
+          toast('success', `AI 已识别 ${Object.keys(json.mapping).length} 个字段`);
+        }
       } else {
         toast('error', json.error || 'AI 分类失败，请确认已配置 API Key');
       }
@@ -142,7 +156,9 @@ export default function ImportPage() {
       const sheet = workbook.Sheets[sheetName];
       const data: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-      const rawHeaders = (data[0] as any[]).map((h: any) => String(h || '').trim());
+      // 如果 AI 检测到了不同的表头行，使用它
+      const headerRowIdx = aiHeaderRowIdx ?? 0;
+      const rawHeaders = (data[headerRowIdx] as any[]).map((h: any) => String(h || '').trim());
 
       // 列名唯一化（与 API 保持一致的逻辑：空列名填充、重复去重）
       const seen = new Map<string, number>();
@@ -156,7 +172,7 @@ export default function ImportPage() {
 
       const rows: Record<string, string | number>[] = [];
 
-      for (let i = 1; i < data.length; i++) {
+      for (let i = headerRowIdx + 1; i < data.length; i++) {
         const row: Record<string, string | number> = {};
         headers.forEach((header: string, idx: number) => {
           const val = data[i][idx];
