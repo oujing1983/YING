@@ -21,9 +21,13 @@ interface Letter {
 export function LettersPanel({
   enterpriseId,
   initialLetters,
+  enterpriseEmail,
+  enterprisePhone,
 }: {
   enterpriseId: number;
   initialLetters: Letter[];
+  enterpriseEmail?: string;
+  enterprisePhone?: string;
 }) {
   const { toast } = useToast();
   const [letters, setLetters] = useState<Letter[]>(initialLetters);
@@ -147,7 +151,7 @@ export function LettersPanel({
 
   const openSendDialog = (l: Letter) => {
     setSendLetter(l);
-    setSendToEmail('');
+    setSendToEmail(enterpriseEmail || '');
     setShowSendDialog(true);
   };
 
@@ -294,16 +298,28 @@ export function LettersPanel({
         {sendLetter && (
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">收件人邮箱</label>
-              <input
-                type="email"
-                placeholder="customer@example.com"
-                value={sendToEmail}
+              <label className="block text-sm font-medium text-gray-700 mb-2">选择收件方式</label>
+              {enterpriseEmail ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setSendToEmail(enterpriseEmail)}
+                    className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${sendToEmail === enterpriseEmail ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm font-medium">{enterpriseEmail}</span>
+                      <span className="text-xs text-green-600 ml-auto">企业档案邮箱</span>
+                    </div>
+                  </button>
+                  {enterprisePhone && <p className="text-xs text-gray-500">📞 电话：{enterprisePhone}</p>}
+                  <div className="relative"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div><div className="relative flex justify-center"><span className="bg-white px-2 text-xs text-gray-400">或手动输入</span></div></div>
+                </div>
+              ) : (
+                <p className="text-xs text-orange-600 mb-2">⚠️ 该企业未登记邮箱，请手动输入或使用其他方式联系</p>
+              )}
+              <input type="email" placeholder="customer@example.com" value={sendToEmail}
                 onChange={(e) => setSendToEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                autoFocus
-              />
-              <p className="text-xs text-gray-400 mt-1">留空则自动使用企业档案中的邮箱</p>
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" autoFocus />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">邮件标题</label>

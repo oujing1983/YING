@@ -125,7 +125,7 @@ export default function EnterpriseDetailPage({ params }: { params: { id: string 
     </div>
   );
 
-  const LettersTab = <LettersPanel enterpriseId={id} initialLetters={letters} />;
+  const LettersTab = <LettersPanel enterpriseId={id} initialLetters={letters} enterpriseEmail={enterprise.contact_email} enterprisePhone={enterprise.contact_phone} />;
 
   const CRMHistoryContent = followUps.length === 0 ? (
     <div className="text-center py-8 text-gray-500">
