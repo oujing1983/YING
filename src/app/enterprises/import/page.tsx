@@ -45,6 +45,7 @@ const TARGET_FIELDS = [
   { value: 'contact_position', label: '职位' },
   { value: 'is_ecommerce', label: '是否电商' },
   { value: 'is_export', label: '是否出口' },
+  { value: 'external_id', label: '统一社会信用代码' },
 ];
 
 export default function ImportPage() {
