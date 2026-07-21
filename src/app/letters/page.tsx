@@ -304,6 +304,12 @@ export default function LettersPage() {
                 <CardContent>
                   {l.subject && <p className="text-sm font-medium text-gray-700 mb-2">{l.subject}</p>}
                   <pre className="text-sm text-gray-600 whitespace-pre-wrap font-sans line-clamp-4">{l.body}</pre>
+                  {(l.enterprise_email || l.enterprise_phone) && (
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                      {l.enterprise_email && <span>📧 {l.enterprise_email}</span>}
+                      {l.enterprise_phone && <span>📞 {l.enterprise_phone}</span>}
+                    </div>
+                  )}
                   <div className="flex gap-2 mt-3 flex-wrap">
                     <Button variant="ghost" size="sm" onClick={() => handleCopy(l.body)}>
                       <Copy className="w-3 h-3 mr-1" />复制
@@ -315,7 +321,7 @@ export default function LettersPage() {
                       编辑
                     </Button>
                     {(l.letter_type === 'email' || l.letter_type === 'sms') && (
-                      <Button variant="ghost" size="sm" onClick={() => { setSendLetter(l); setSendToEmail(''); }}>
+                      <Button variant="ghost" size="sm" onClick={() => { setSendLetter(l); setSendToEmail(l.enterprise_email || ''); }}>
                         <Send className="w-3 h-3 mr-1 text-blue-500" />发送
                       </Button>
                     )}
@@ -358,13 +364,30 @@ export default function LettersPage() {
         {sendLetter && (
           <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">收件人邮箱</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">选择收件方式</label>
+              {sendLetter.enterprise_email ? (
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setSendToEmail(sendLetter.enterprise_email)}
+                    className={`w-full text-left p-3 rounded-lg border-2 transition-colors ${sendToEmail === sendLetter.enterprise_email ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm font-medium">{sendLetter.enterprise_email}</span>
+                      <span className="text-xs text-green-600 ml-auto">企业档案邮箱</span>
+                    </div>
+                  </button>
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200"></div></div>
+                    <div className="relative flex justify-center"><span className="bg-white px-2 text-xs text-gray-400">或手动输入</span></div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-orange-600 mb-2">⚠️ 该企业无邮箱，请手动输入</p>
+              )}
               <input type="email" placeholder="customer@example.com" value={sendToEmail}
                 onChange={(e) => setSendToEmail(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm" autoFocus />
-              {sendLetter.enterprise_email && (
-                <p className="text-xs text-blue-600 mt-1">📧 企业邮箱：{sendLetter.enterprise_email}（留空自动使用此邮箱）</p>
-              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">标题</label>
