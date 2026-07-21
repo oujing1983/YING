@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   const db = getDb();
 
   try {
-    const { rows, columnMapping, fileName } = await request.json();
+    const { rows, headers, columnMapping, fileName } = await request.json();
 
     if (!rows || !Array.isArray(rows) || rows.length === 0) {
       return NextResponse.json({ error: '没有可导入的数据' }, { status: 400 });
@@ -52,11 +52,15 @@ export async function POST(request: NextRequest) {
     let errors = 0;
 
     for (const row of rows) {
-      // Apply column mapping
+      // Apply column mapping (index-based, uses headers array to resolve column name)
       const mapped: Record<string, any> = {};
-      for (const [sourceColumn, targetField] of Object.entries(columnMapping)) {
+      for (const [indexStr, targetField] of Object.entries(columnMapping)) {
         if (targetField && typeof targetField === 'string') {
-          mapped[targetField] = row[sourceColumn];
+          const index = parseInt(indexStr, 10);
+          const sourceColumn = headers ? headers[index] : indexStr;
+          if (sourceColumn !== undefined && sourceColumn !== null) {
+            mapped[targetField] = row[sourceColumn];
+          }
         }
       }
 

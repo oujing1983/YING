@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '文件为空或无法解析' }, { status: 400 });
     }
 
-    // Detect columns
+    // Detect columns (parser already deduplicates empty/duplicate headers)
     const columnDetection = detectColumns(parseResult.headers);
 
     // Generate preview (first 10 rows)

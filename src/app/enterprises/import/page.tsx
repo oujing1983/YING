@@ -53,7 +53,7 @@ export default function ImportPage() {
 
   const [step, setStep] = useState<'upload' | 'mapping' | 'importing' | 'done'>('upload');
   const [importData, setImportData] = useState<ImportData | null>(null);
-  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [mapping, setMapping] = useState<Record<number, string>>({});
   const [result, setResult] = useState<any>(null);
   const [processing, setProcessing] = useState(false);
   const fileRef = useRef<File | null>(null);
@@ -72,10 +72,10 @@ export default function ImportPage() {
         toast('error', data.error);
       } else {
         setImportData(data);
-        // Auto-set mapping from detection
-        const autoMapping: Record<string, string> = {};
-        data.columnDetection.forEach((d: ColumnDetection) => {
-          autoMapping[d.sourceColumn] = d.targetField || '';
+        // Auto-set mapping from detection (使用索引作为 key，避免重复列名问题)
+        const autoMapping: Record<number, string> = {};
+        data.columnDetection.forEach((d: ColumnDetection, idx: number) => {
+          autoMapping[idx] = d.targetField || '';
         });
         setMapping(autoMapping);
         setStep('mapping');
@@ -111,7 +111,18 @@ export default function ImportPage() {
       const sheet = workbook.Sheets[sheetName];
       const data: any[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-      const headers = (data[0] as any[]).map((h: any) => String(h || '').trim());
+      const rawHeaders = (data[0] as any[]).map((h: any) => String(h || '').trim());
+
+      // 列名唯一化（与 API 保持一致的逻辑：空列名填充、重复去重）
+      const seen = new Map<string, number>();
+      const headers = rawHeaders.map((h: string, i: number) => {
+        let name = h;
+        if (!name) name = `列${i + 1}`;
+        const count = seen.get(name) || 0;
+        seen.set(name, count + 1);
+        return count > 0 ? `${name} (${count + 1})` : name;
+      });
+
       const rows: Record<string, string | number>[] = [];
 
       for (let i = 1; i < data.length; i++) {
@@ -130,6 +141,7 @@ export default function ImportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rows,
+          headers,
           columnMapping: mapping,
           fileName: importData?.fileName,
         }),
@@ -217,10 +229,10 @@ export default function ImportPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {importData.columnDetection.map((col) => (
-                  <div key={col.sourceColumn} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                {importData.columnDetection.map((col, idx) => (
+                  <div key={idx} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                     <div className="w-48 flex-shrink-0">
-                      <span className="text-sm font-medium text-gray-700">{col.sourceColumn}</span>
+                      <span className="text-sm font-medium text-gray-700">{col.sourceColumn || `列 ${idx + 1}`}</span>
                       {col.confidence === 'high' && (
                         <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700">
                           <Check className="w-3 h-3 mr-0.5" />自动匹配
@@ -234,8 +246,8 @@ export default function ImportPage() {
                     </div>
                     <span className="text-gray-300">→</span>
                     <select
-                      value={mapping[col.sourceColumn] || ''}
-                      onChange={(e) => setMapping((prev) => ({ ...prev, [col.sourceColumn]: e.target.value }))}
+                      value={mapping[idx] || ''}
+                      onChange={(e) => setMapping((prev) => ({ ...prev, [idx]: e.target.value }))}
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
                     >
                       {TARGET_FIELDS.map((f) => (
@@ -256,11 +268,11 @@ export default function ImportPage() {
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="border-b border-gray-100 bg-gray-50">
-                      {importData.headers.map((h) => (
-                        <th key={h} className="px-3 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
-                          {h}
-                          {mapping[h] && (
-                            <span className="ml-1 text-blue-500">→{TARGET_FIELDS.find((f) => f.value === mapping[h])?.label}</span>
+                      {importData.headers.map((h, i) => (
+                        <th key={h || i} className="px-3 py-2 text-left font-medium text-gray-600 whitespace-nowrap">
+                          {h || `列${i + 1}`}
+                          {mapping[i] && (
+                            <span className="ml-1 text-blue-500">→{TARGET_FIELDS.find((f) => f.value === mapping[i])?.label}</span>
                           )}
                         </th>
                       ))}

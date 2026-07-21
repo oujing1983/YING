@@ -40,6 +40,11 @@ export function detectColumns(headers: string[]): ColumnDetection[] {
   return headers.map((header) => {
     const trimmed = header.trim();
 
+    // Skip empty headers — don't try to match
+    if (!trimmed) {
+      return { sourceColumn: trimmed, targetField: null, confidence: 'manual' };
+    }
+
     // Try exact match first
     for (const mapping of FIELD_MAPPINGS) {
       if (mapping.labels.some((label) => label === trimmed)) {
