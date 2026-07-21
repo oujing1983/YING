@@ -8,7 +8,7 @@ import { Dialog } from '@/components/ui/dialog';
 import { Select } from '@/components/ui/select';
 import { useToast } from '@/components/ui/toast';
 import { formatDateTime } from '@/lib/utils';
-import { Copy, MessagesSquare, Mail, Phone, FileText, Search, X } from 'lucide-react';
+import { Copy, MessagesSquare, Mail, Phone, FileText, Search, X, ChevronDown } from 'lucide-react';
 import type { Enterprise } from '@/types';
 
 export default function LettersPage() {
@@ -21,6 +21,7 @@ export default function LettersPage() {
   const [preview, setPreview] = useState<any>(null);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [entSearch, setEntSearch] = useState('');
 
   // 搜索过滤
   const filteredLetters = letters.filter((l) => {
@@ -109,17 +110,54 @@ export default function LettersPage() {
       </div>
 
       {/* Generate Dialog */}
-      <Dialog open={showGenerate} onClose={() => setShowGenerate(false)} title="生成开发信">
+      <Dialog open={showGenerate} onClose={() => { setShowGenerate(false); setEntSearch(''); }} title="生成开发信">
         <div className="space-y-3">
-          <Select
-            label="目标企业"
-            options={[
-              { value: '', label: '— 选择企业 —' },
-              ...enterprises.map((e) => ({ value: String(e.id), label: `${e.name} (${e.score_level}级)` })),
-            ]}
-            value={String(genEnterpriseId)}
-            onChange={(e) => setGenEnterpriseId(parseInt(e.target.value))}
-          />
+          {/* Searchable Enterprise Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">目标企业</label>
+            {genEnterpriseId > 0 ? (
+              <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                <span className="flex-1 text-sm font-medium">
+                  {enterprises.find(e => e.id === genEnterpriseId)?.name || '已选择'}
+                </span>
+                <button onClick={() => { setGenEnterpriseId(0); setEntSearch(''); }} className="text-gray-400 hover:text-red-500">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="搜索企业名称..."
+                  value={entSearch}
+                  onChange={(e) => setEntSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  autoFocus
+                />
+                {entSearch && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {enterprises
+                      .filter(e => e.name.toLowerCase().includes(entSearch.toLowerCase()))
+                      .slice(0, 20)
+                      .map(e => (
+                        <button
+                          key={e.id}
+                          onClick={() => { setGenEnterpriseId(e.id); setEntSearch(''); }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 border-b border-gray-50 last:border-0"
+                        >
+                          <span className="font-medium">{e.name}</span>
+                          <span className="text-gray-400 ml-2 text-xs">{e.industry_category || ''} {e.score_level}级</span>
+                        </button>
+                      ))}
+                    {enterprises.filter(e => e.name.toLowerCase().includes(entSearch.toLowerCase())).length === 0 && (
+                      <p className="px-3 py-2 text-sm text-gray-400">未找到匹配企业</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <Select
             label="类型"
             options={[
