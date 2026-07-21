@@ -27,11 +27,27 @@ export async function generateLetter(
     'SELECT * FROM ai_analyses WHERE enterprise_id = ?'
   ).get(enterpriseId) as any;
 
-  const defaultSender = sender || {
-    name: '张经理',
-    phone: '13800000000',
-    wechat: 'zhang_packing',
-    company: '浙江XX包装有限公司',
+  // 优先读取系统设置中的发件人信息，再使用传入的 sender 参数，最后用默认值
+  let settingsSender = { name: '', phone: '', wechat: '', company: '' };
+  try {
+    const senderRow = db.prepare("SELECT value FROM settings WHERE key = 'sender_info'").get() as any;
+    if (senderRow) {
+      settingsSender = JSON.parse(senderRow.value);
+    }
+  } catch {}
+  try {
+    const factoryRow = db.prepare("SELECT value FROM settings WHERE key = 'factory_location'").get() as any;
+    if (factoryRow) {
+      const loc = JSON.parse(factoryRow.value);
+      if (!settingsSender.company && loc.city) settingsSender.company = `${loc.province || '浙江'}${loc.city}包装有限公司`;
+    }
+  } catch {}
+
+  const mergedSender = {
+    name: settingsSender.name || sender?.name || '张经理',
+    phone: settingsSender.phone || sender?.phone || '13800000000',
+    wechat: settingsSender.wechat || sender?.wechat || 'zhang_packing',
+    company: settingsSender.company || sender?.company || '浙江XX包装有限公司',
   };
 
   const userPrompt = buildLetterPrompt(
@@ -48,7 +64,7 @@ export async function generateLetter(
       packaging_types_needed: JSON.parse(analysis.packaging_types_needed || '[]'),
     } : null,
     letterType,
-    defaultSender
+    mergedSender
   );
 
   const result = await llmChatJson<LetterResult>([

@@ -5,6 +5,7 @@ import { Tabs } from '@/components/ui/tabs';
 import { getDb } from '@/lib/db';
 import { runMigrations } from '@/lib/db-migrate';
 import { formatDate, formatDateTime, getStatusLabel, getStatusColor, getScoreColor, getContactTypeLabel } from '@/lib/utils';
+import { LettersPanel } from '@/components/enterprise/letters-panel';
 import Link from 'next/link';
 import { ArrowLeft, Edit, Phone, Mail, MapPin } from 'lucide-react';
 
@@ -124,30 +125,7 @@ export default function EnterpriseDetailPage({ params }: { params: { id: string 
     </div>
   );
 
-  const LettersTab = (
-    <div className="space-y-4">
-      {letters.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          <p>暂无开发信</p>
-        </div>
-      ) : (
-        letters.map((l: any) => (
-          <Card key={l.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{l.subject || '(无标题)'}</span>
-                <Badge>{l.letter_type === 'email' ? '邮件' : l.letter_type === 'wechat' ? '微信' : l.letter_type === 'phone_script' ? '电话话术' : '短信'}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans">{l.body}</pre>
-              <p className="text-xs text-gray-400 mt-2">{formatDateTime(l.created_at)}</p>
-            </CardContent>
-          </Card>
-        ))
-      )}
-    </div>
-  );
+  const LettersTab = <LettersPanel enterpriseId={id} initialLetters={letters} />;
 
   const CRMHistoryContent = followUps.length === 0 ? (
     <div className="text-center py-8 text-gray-500">

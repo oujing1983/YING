@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { FileUpload } from '@/components/ui/file-upload';
 import { useToast } from '@/components/ui/toast';
 import Link from 'next/link';
-import { ArrowLeft, Check, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Check, AlertCircle, Wand2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 interface ColumnDetection {
@@ -84,6 +84,36 @@ export default function ImportPage() {
       toast('error', '文件上传失败');
     }
     setProcessing(false);
+  };
+
+  // AI 智能分类
+  const [aiClassifying, setAiClassifying] = useState(false);
+  const handleAiClassify = async () => {
+    if (!importData) return;
+    setAiClassifying(true);
+    try {
+      const res = await fetch('/api/import/ai-classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headers: importData.headers }),
+      });
+      const json = await res.json();
+      if (json.success && json.mapping) {
+        setMapping((prev) => {
+          const next = { ...prev };
+          for (const [idx, field] of Object.entries(json.mapping)) {
+            next[Number(idx)] = field as string;
+          }
+          return next;
+        });
+        toast('success', `AI 已识别 ${Object.keys(json.mapping).length} 个字段`);
+      } else {
+        toast('error', json.error || 'AI 分类失败，请确认已配置 API Key');
+      }
+    } catch {
+      toast('error', 'AI 请求失败，请确认已配置 DeepSeek API Key');
+    }
+    setAiClassifying(false);
   };
 
   // Step 2: Confirm mapping and import
@@ -221,7 +251,13 @@ export default function ImportPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">第二步：确认列映射</h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="font-semibold">第二步：确认列映射</h3>
+                  <Button variant="outline" size="sm" onClick={handleAiClassify} disabled={aiClassifying}>
+                    <Wand2 className="w-3 h-3 mr-1" />
+                    {aiClassifying ? 'AI 识别中...' : 'AI 智能分类'}
+                  </Button>
+                </div>
                 <span className="text-sm text-gray-500">
                   文件：{importData.fileName} | 共 {importData.totalRows} 行数据
                 </span>
