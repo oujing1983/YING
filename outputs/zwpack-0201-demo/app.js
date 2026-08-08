@@ -180,10 +180,11 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
     throw new Error("榫锁翻盖盒的 L、W、H 需为不小于 30 mm 的有效数值。");
   }
 
-  // Candidate demo ratios inferred from the supplied reference screenshot.
-  // They must remain configurable and require a factory sample before production use.
-  const ear = H * 0.4;
-  const lockDepth = H * 0.4;
+  // Visual-reference ratios reconstructed from the supplied 158 × 102 × 52 mm screenshot.
+  // They reproduce its 305 × 325 mm displayed envelope at the reference size. These remain
+  // candidate demo rules and require a dimensioned dieline/factory sample for production use.
+  const ear = H * (43 / 104);
+  const lockDepth = H * (17 / 52);
   const sideDepth = H;
   const centerX = ear + sideDepth;
   const rightX = centerX + L;
@@ -194,9 +195,10 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
   const y3 = y2 + H;
   const y4 = y3 + W;
   const y5 = y4 + H;
-  const corner = Math.min(12, lockDepth * 0.55);
-  const hook = Math.min(ear * 0.72, H * 0.34);
-  const neck = Math.min(ear * 0.35, H * 0.18);
+  const corner = Math.min(8, H * 0.16);
+  const outerCorner = Math.min(8, H * 0.17);
+  const hook = Math.min(ear * 0.82, H * 0.36);
+  const neck = Math.min(ear * 0.28, H * 0.12);
 
   const faces = [
     { id: "LID", x: centerX, y: y1, w: L, h: W, type: "body" },
@@ -246,6 +248,27 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
     ].join(" ");
   };
 
+  const sidePanelPath = (side, closePath = true) => {
+    const isLeft = side === "left";
+    const edge = isLeft ? centerX : rightX;
+    const inner = isLeft ? edge - H : edge + H;
+    const outer = isLeft ? 0 : outerRight;
+    const direction = isLeft ? -1 : 1;
+    const notchRun = Math.min(ear * 0.58, 12);
+    return [
+      `M ${edge} ${y3}`,
+      `L ${outer + direction * -outerCorner} ${y3}`,
+      `Q ${outer} ${y3} ${outer} ${y3 + outerCorner}`,
+      `L ${outer} ${y4 - outerCorner * 1.25}`,
+      `Q ${outer} ${y4} ${outer - direction * outerCorner} ${y4}`,
+      `L ${inner + direction * notchRun} ${y4}`,
+      `Q ${inner + direction * notchRun * 0.62} ${y4} ${inner + direction * notchRun * 0.48} ${y4 + neck * 0.45}`,
+      `L ${inner} ${y4}`,
+      `L ${edge} ${y4}`,
+      closePath ? "Z" : ""
+    ].join(" ");
+  };
+
   const frontNotch = Math.min(18, L * 0.09);
   const frontCutPath = [
     `M ${centerX} ${y5}`,
@@ -258,6 +281,8 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
     { id: "TOP_LOCK", d: topLockPath },
     { id: "WING_BACK_L", d: wingPath("left", true) },
     { id: "WING_BACK_R", d: wingPath("right", true) },
+    { id: "SIDE_PANEL_L", d: sidePanelPath("left") },
+    { id: "SIDE_PANEL_R", d: sidePanelPath("right") },
     { id: "WING_FRONT_L", d: wingPath("left", false) },
     { id: "WING_FRONT_R", d: wingPath("right", false) }
   ];
@@ -267,8 +292,6 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
     { x1: rightX - 10, y1, x2: rightX, y2: y1 },
     { x1: centerX, y1: y1, x2: centerX, y2: y2 },
     { x1: rightX, y1: y1, x2: rightX, y2: y2 },
-    { x1: centerX - H, y1: y3, x2: centerX - H, y2: y4 },
-    { x1: rightX + H, y1: y3, x2: rightX + H, y2: y4 },
     { x1: centerX - H, y1: y3, x2: centerX, y2: y3 },
     { x1: rightX, y1: y3, x2: rightX + H, y2: y3 },
     { x1: centerX - H, y1: y4, x2: centerX, y2: y4 },
@@ -293,7 +316,7 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
     layout: "mortise-flip",
     units: "mm",
     input: { L, W, H, G: 0, flapAdjustment: 0, dimensionType, material: state.material },
-    assumptions: ["side lock ear = 0.4H", "top lock depth = 0.4H", "theoretical demo geometry"],
+    assumptions: ["side lock ear = 43H/104", "top lock depth = 17H/52", "visual-reference demo geometry"],
     bounds: { minX: 0, minY: 0, maxX: outerRight, maxY: y5 },
     faces,
     facePaths,
@@ -303,6 +326,8 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
       { id: "cut-TOP_LOCK", d: topLockCutPath },
       { id: "cut-WING_BACK_L", d: wingPath("left", true, false) },
       { id: "cut-WING_BACK_R", d: wingPath("right", true, false) },
+      { id: "cut-SIDE_PANEL_L", d: sidePanelPath("left", false) },
+      { id: "cut-SIDE_PANEL_R", d: sidePanelPath("right", false) },
       { id: "cut-WING_FRONT_L", d: wingPath("left", false, false) },
       { id: "cut-WING_FRONT_R", d: wingPath("right", false, false) },
       { id: "cut-front-notch", d: frontCutPath }
@@ -470,8 +495,8 @@ function renderGeometry(geometry) {
     el.boxTypeStatus.textContent = "榫锁翻盖盒 · 理论预览";
     el.boxTypeEyebrow.textContent = "MORTISE FLIP";
     el.ruleTitle.textContent = "当前榫锁规则";
-    el.ruleFormula.textContent = "LockEar = 0.4H · LockDepth = 0.4H";
-    el.ruleNote.textContent = "根据参考截图建立的理论候选比例，需打样确认后再用于生产。";
+    el.ruleFormula.textContent = "LockEar = 43H/104 · LockDepth = 17H/52";
+    el.ruleNote.textContent = "按 158×102×52 截图复刻外观与 305×325 展开范围；卡口细节仍需尺寸图或实样确认。";
   }
   el.svg.setAttribute("viewBox", `${-margin} ${-margin} ${geometry.bounds.maxX + margin * 2} ${geometry.bounds.maxY + margin * 2}`);
   state.geometry = geometry;
