@@ -343,7 +343,7 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
 }
 
 function generateGeometry(input) {
-  return input.boxType === "mortise-flip" ? generateMortiseFlip(input) : generate0201(input);
+  return generate0201(input);
 }
 
 function renderGeometry(geometry) {
@@ -643,17 +643,10 @@ el.artworkInput.addEventListener("change", async () => {
 el.form.addEventListener("input", (event) => {
   if (event.target.name === "material") state.material = event.target.value;
   if (event.target.name === "boxType") {
-    const isMortise = event.target.value === "mortise-flip";
     document.body.dataset.boxType = event.target.value;
-    if (isMortise) {
-      document.querySelector("#lengthInput").value = 158;
-      document.querySelector("#widthInput").value = 102;
-      document.querySelector("#heightInput").value = 52;
-    } else {
-      document.querySelector("#lengthInput").value = 500;
-      document.querySelector("#widthInput").value = 380;
-      document.querySelector("#heightInput").value = 400;
-    }
+    document.querySelector("#lengthInput").value = 500;
+    document.querySelector("#widthInput").value = 380;
+    document.querySelector("#heightInput").value = 400;
     state.artworks.forEach((artwork) => { artwork.position = null; });
   }
   update();
