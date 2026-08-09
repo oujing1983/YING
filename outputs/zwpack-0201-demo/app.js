@@ -175,14 +175,14 @@ function generate0201({ L, W, H, G, flapAdjustment, dimensionType }) {
   };
 }
 
-function generateMortiseFlip({ L, W, H, dimensionType }) {
+function generateMortiseFlipLegacy({ L, W, H, dimensionType }) {
   if (![L, W, H].every(Number.isFinite) || [L, W, H].some((n) => n < 30)) {
-    throw new Error("榫锁翻盖盒的 L、W、H 需为不小于 30 mm 的有效数值。");
+    throw new Error("双扣内盒的 L、W、H 需为不小于 30 mm 的有效数值。");
   }
 
-  // Visual-reference ratios reconstructed from the supplied 158 × 102 × 52 mm screenshot.
-  // They reproduce its 305 × 325 mm displayed envelope at the reference size. These remain
-  // candidate demo rules and require a dimensioned dieline/factory sample for production use.
+  // Candidate ratios reconstructed from the supplied traced SVG and its 158 × 120 × 52 mm labels.
+  // They produce the agreed 305 × 361 mm theoretical envelope at the reference size. These remain
+  // configurable demo rules and require a dimensioned dieline/factory sample for production use.
   const ear = H * (43 / 104);
   const lockDepth = H * (17 / 52);
   const sideDepth = H;
@@ -312,8 +312,8 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
   ];
 
   return {
-    boxType: "mortise-flip",
-    layout: "mortise-flip",
+    boxType: "double-lock-inner",
+    layout: "double-lock-inner",
     units: "mm",
     input: { L, W, H, G: 0, flapAdjustment: 0, dimensionType, material: state.material },
     assumptions: ["side lock ear = 43H/104", "top lock depth = 17H/52", "visual-reference demo geometry"],
@@ -342,7 +342,108 @@ function generateMortiseFlip({ L, W, H, dimensionType }) {
   };
 }
 
+// Vector master extracted from 双扣内盒.svg. Black = cut line, red = crease line.
+// The source was traced from a screenshot, so this first preview preserves its outline and
+// fits it to the agreed envelope. Semantic L/W/H stretch zones are the next calibration step.
+const doubleLockMaster = {
+  minX: 3108,
+  minY: 3072,
+  width: 728.5,
+  height: 777.5,
+  cut: `M3290.5 3116V3092.5C3292.5 3085.67 3299.8 3072 3313 3072M3314.5 3123.5C3314.5 3118.7 3311.83 3116.5 3310.5 3116H3290.5M3290.5 3116H3287.5M3313 3072C3326.2 3072 3529.5 3072 3629.5 3072M3652.5 3095C3652.5 3078.2 3637.17 3072.67 3629.5 3072H3313M3652.5 3095C3652.5 3101.8 3652.5 3111.83 3652.5 3116M3652.5 3095V3116M3652.5 3116H3637C3634.5 3116.17 3629.5 3117.9 3629.5 3123.5M3652.5 3116H3658.5V3359.5L3663 3368H3751L3774.5 3425C3777 3428.5 3782.1 3433.4 3782.5 3425C3782.9 3416.6 3782.5 3391.5 3782.5 3385C3782.5 3378.5 3788 3368 3804.5 3368C3821 3368 3829.5 3375 3829.5 3385V3392.5V3464C3829.5 3472.5 3830.42 3477.5 3818 3477.5M3836.5 3503.69C3836.5 3485.5 3833.5 3485.5 3826 3485.5H3663C3663 3485.5 3659.33 3478.05 3663 3477.5C3711.5 3477.5 3810.4 3477.5 3818 3477.5M3818 3477.5H3663M3826 3718C3836 3718 3837.17 3705 3836.5 3698.5C3836.5 3640.17 3836.5 3519.54 3836.5 3503.69M3836.5 3503.69V3698.5M3782.5 3793.5C3782.5 3798 3776.5 3798 3774.5 3793.5L3751 3735.5C3725.67 3736.17 3666 3735.5 3663 3735.5C3654 3735.5 3658.5 3727.5 3663 3729H3778.5L3782.5 3725H3804.5L3812 3718C3814 3718 3819.6 3718 3826 3718M3826 3718H3812M3782.5 3793.5C3782.5 3786.3 3782.5 3763.5 3782.5 3753M3818 3845C3826 3845 3829 3837.33 3829.5 3833.5V3753C3827 3747.17 3818.5 3735.5 3804.5 3735.5C3790.5 3735.5 3784 3747.17 3782.5 3753V3793.5M3288.5 3849.5C3353.33 3849.5 3389.67 3849.5 3454.5 3849.5C3454.5 3841 3455.5 3829.5 3472 3829.5C3488.5 3829.5 3491.5 3838 3491.5 3849.5H3658.5L3663 3845C3711.33 3845 3810 3845 3818 3845M3818 3845H3663M3127.5 3845H3282.5L3288.5 3849.5H3454.5M3282.5 3845C3282.5 3845 3134 3845 3127.5 3845M3163 3789.5C3163 3785 3163 3756.5 3163 3756.5C3161 3748.67 3153.1 3733.5 3137.5 3735.5C3121.9 3737.5 3116.33 3750.33 3115.5 3756.5V3777V3829.5C3115.5 3844.3 3121 3845 3127.5 3845M3163 3756.5V3789.5M3163 3789.5C3163 3794 3166.5 3796.5 3169.5 3793.5C3171.86 3789.5 3187.5 3753.5 3194 3735.5H3282.5C3284.17 3735.17 3287.4 3733.9 3287 3731.5C3286.6 3729.1 3283.83 3728.17 3282.5 3728H3163V3724.5H3141.5L3135.5 3717.5H3119.5C3115.83 3716.83 3108.4 3713.1 3108 3703.5C3107.6 3693.9 3107.83 3562.83 3108 3498.5C3107.33 3493.67 3108.9 3484 3120.5 3484M3120.5 3484C3132.1 3484 3233.67 3484 3283 3484M3310.5 3116H3287.5V3360L3283 3367H3194.5C3187.83 3382.33 3173.8 3414.9 3171 3422.5C3168.2 3430.1 3164.83 3427.33 3163.5 3425C3163.5 3410.36 3163.5 3402.14 3163.5 3387.5C3163 3380.67 3163.5 3367 3139 3367C3114.5 3367 3115.33 3380.67 3115 3387.5C3114.83 3407.67 3114.6 3450.9 3115 3462.5C3115.4 3474.1 3123.5 3477 3127.5 3477H3283C3284.83 3477.17 3288.3 3478.2 3287.5 3481C3286.7 3483.8 3284.17 3484.17 3283 3484H3120.5M3163.5 3387.5V3425`,
+  creases: [
+    `M3314.5 3120H3629.5M3658 3361V3484H3287.5V3361M3283.5 3486V3728H3287.5M3661 3484V3728H3657.5M3782 3484V3726M3163 3484V3722.5M3657.5 3728V3848M3657.5 3728H3287.5M3287.5 3728V3848.5`,
+    `M3288.5 3361.5H3656.5`
+  ]
+};
+
+function piecewiseMap(value, sourceKnots, targetKnots) {
+  let index = sourceKnots.findIndex((knot) => value <= knot);
+  if (index <= 0) index = 1;
+  if (index >= sourceKnots.length) index = sourceKnots.length - 1;
+  const sourceStart = sourceKnots[index - 1];
+  const sourceEnd = sourceKnots[index];
+  const targetStart = targetKnots[index - 1];
+  const targetEnd = targetKnots[index];
+  const ratio = (value - sourceStart) / (sourceEnd - sourceStart);
+  return targetStart + ratio * (targetEnd - targetStart);
+}
+
+function mapMasterPath(d, mapX, mapY) {
+  const tokens = d.match(/[A-Za-z]|-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi) || [];
+  const arity = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
+  const output = [];
+  let command = null;
+  let cursor = 0;
+  while (cursor < tokens.length) {
+    if (/^[A-Za-z]$/.test(tokens[cursor])) {
+      command = tokens[cursor].toUpperCase();
+      output.push(command);
+      cursor += 1;
+      if (command === "Z") continue;
+    }
+    const count = arity[command];
+    if (!count || cursor + count > tokens.length) break;
+    const values = tokens.slice(cursor, cursor + count).map(Number);
+    if (command === "H") values[0] = mapX(values[0]);
+    else if (command === "V") values[0] = mapY(values[0]);
+    else if (command === "A") {
+      values[5] = mapX(values[5]);
+      values[6] = mapY(values[6]);
+    } else {
+      for (let i = 0; i < values.length; i += 2) {
+        values[i] = mapX(values[i]);
+        values[i + 1] = mapY(values[i + 1]);
+      }
+    }
+    output.push(values.map((value) => Number(value.toFixed(3))).join(" "));
+    cursor += count;
+  }
+  return output.join(" ");
+}
+
+function generateDoubleLockMaster({ L, W, H, dimensionType }) {
+  if (![L, W, H].every(Number.isFinite) || [L, W, H].some((n) => n < 30)) {
+    throw new Error("双扣内盒的 L、W、H 需为不小于 30 mm 的有效数值。");
+  }
+  const overallWidth = L + 2 * H + H * (43 / 52);
+  const overallHeight = 2 * W + 2 * H + H * (17 / 52);
+  const ear = H * (43 / 104);
+  const lockDepth = H * (17 / 52);
+  const centerLeft = H + ear;
+  const sourceX = [3108, 3287.5, 3658.5, 3836.5];
+  const targetX = [0, centerLeft, centerLeft + L, overallWidth];
+  const sourceY = [3072, 3120, 3361, 3484, 3728, 3849.5];
+  const targetY = [0, lockDepth, lockDepth + W, lockDepth + W + H, lockDepth + 2 * W + H, overallHeight];
+  const mapX = (value) => piecewiseMap(value, sourceX, targetX);
+  const mapY = (value) => piecewiseMap(value, sourceY, targetY);
+  const yLidBottom = lockDepth + W;
+  const yBackBottom = yLidBottom + H;
+  const yBaseBottom = yBackBottom + W;
+  return {
+    boxType: "double-lock-inner",
+    layout: "double-lock-inner",
+    units: "mm",
+    input: { L, W, H, G: 0, flapAdjustment: 0, dimensionType, material: state.material },
+    assumptions: ["uploaded vector master", "semantic L/W/H stretch zones", "lock details scale with H"],
+    bounds: { minX: 0, minY: 0, maxX: overallWidth, maxY: overallHeight },
+    faces: [],
+    creases: [],
+    cuts: [],
+    slots: [],
+    cutPaths: [{ id: "double-lock-master-cut", d: mapMasterPath(doubleLockMaster.cut, mapX, mapY) }],
+    creasePaths: doubleLockMaster.creases.map((d, index) => ({ id: `double-lock-master-crease-${index + 1}`, d: mapMasterPath(d, mapX, mapY) })),
+    annotations: [
+      { axis: "x", x1: centerLeft, y1: yBackBottom + W * 0.7, x2: centerLeft + L, y2: yBackBottom + W * 0.7, label: `L = ${L} mm` },
+      { axis: "y", x1: centerLeft + L * 0.28, y1: yBackBottom, x2: centerLeft + L * 0.28, y2: yBaseBottom, label: `W = ${W} mm` },
+      { axis: "y", x1: centerLeft + L * 0.76, y1: yLidBottom, x2: centerLeft + L * 0.76, y2: yBackBottom, label: `H = ${H} mm` }
+    ],
+    metrics: { overallWidth, overallHeight, flapDepth: lockDepth }
+  };
+}
+
 function generateGeometry(input) {
+  if (input.boxType === "double-lock-inner") return generateDoubleLockMaster(input);
   return generate0201(input);
 }
 
@@ -419,11 +520,14 @@ function renderGeometry(geometry) {
     d: slot.d, class: "cut-line slot-line", "data-slot-id": slot.id
   })));
   (geometry.cutPaths || []).forEach((path) => el.viewport.append(svgNode("path", {
-    d: path.d, class: "cut-line shape-cut", "data-cut-id": path.id
+    d: path.d, transform: path.transform, class: "cut-line shape-cut", "data-cut-id": path.id
   })));
 
   geometry.creases.forEach((line) => el.viewport.append(svgNode("line", {
     x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2, class: "crease-line"
+  })));
+  (geometry.creasePaths || []).forEach((path) => el.viewport.append(svgNode("path", {
+    d: path.d, transform: path.transform, class: "crease-line", "data-crease-id": path.id
   })));
 
   geometry.faces.filter((face) => face.type === "body" || face.type === "glue").forEach((face) => {
@@ -480,7 +584,7 @@ function renderGeometry(geometry) {
   el.height.textContent = `${geometry.metrics.overallHeight} mm`;
   el.manufacturingSummary.textContent = geometry.layout === "0201"
     ? `${geometry.input.L} × ${geometry.input.W} × ${geometry.input.H} mm · 接舌 ${geometry.input.G} mm`
-    : `${geometry.input.L} × ${geometry.input.W} × ${geometry.input.H} mm · 榫锁翻盖盒`;
+    : `${geometry.input.L} × ${geometry.input.W} × ${geometry.input.H} mm · 双扣内盒`;
   const area = calculateBoardArea(geometry.input.L, geometry.input.W, geometry.input.H);
   el.area.textContent = `${area.squareMeters.toFixed(4)} ㎡`;
   el.areaFormula.textContent = `(${area.factorA.toFixed(1)} × ${area.factorB.toFixed(1)} × 2) ÷ 10000`;
@@ -492,11 +596,11 @@ function renderGeometry(geometry) {
     el.ruleFormula.textContent = "FlapDepth = (W + ΔF) ÷ 2";
     el.ruleNote.textContent = "当前 ΔF=26.6 mm，用于复现本次工厂计算结果；正式系统由后台维护。";
   } else {
-    el.boxTypeStatus.textContent = "榫锁翻盖盒 · 理论预览";
-    el.boxTypeEyebrow.textContent = "MORTISE FLIP";
-    el.ruleTitle.textContent = "当前榫锁规则";
-    el.ruleFormula.textContent = "LockEar = 43H/104 · LockDepth = 17H/52";
-    el.ruleNote.textContent = "按 158×102×52 截图复刻外观与 305×325 展开范围；卡口细节仍需尺寸图或实样确认。";
+    el.boxTypeStatus.textContent = "双扣内盒 · 理论母版";
+    el.boxTypeEyebrow.textContent = "DOUBLE LOCK INNER";
+    el.ruleTitle.textContent = "当前 SVG 母版规则";
+    el.ruleFormula.textContent = "L/W/H 分区伸缩 · 卡扣随共享边移动";
+    el.ruleNote.textContent = "本版已按母版压线位置划分长、宽、高区域；卡扣细节暂随 H 比例变化，仍需实样校准。";
   }
   el.svg.setAttribute("viewBox", `${-margin} ${-margin} ${geometry.bounds.maxX + margin * 2} ${geometry.bounds.maxY + margin * 2}`);
   state.geometry = geometry;
@@ -642,14 +746,20 @@ el.artworkInput.addEventListener("change", async () => {
 
 el.form.addEventListener("input", (event) => {
   if (event.target.name === "material") state.material = event.target.value;
-  if (event.target.name === "boxType") {
-    document.body.dataset.boxType = event.target.value;
-    document.querySelector("#lengthInput").value = 500;
-    document.querySelector("#widthInput").value = 380;
-    document.querySelector("#heightInput").value = 400;
-    state.artworks.forEach((artwork) => { artwork.position = null; });
-  }
+  if (event.target.name === "boxType") return;
   update();
+});
+document.querySelectorAll('input[name="boxType"]').forEach((input) => {
+  input.addEventListener("change", (event) => {
+    if (!event.target.checked) return;
+    document.body.dataset.boxType = event.target.value;
+    const isDoubleLock = event.target.value === "double-lock-inner";
+    document.querySelector("#lengthInput").value = isDoubleLock ? 158 : 500;
+    document.querySelector("#widthInput").value = isDoubleLock ? 120 : 380;
+    document.querySelector("#heightInput").value = isDoubleLock ? 52 : 400;
+    state.artworks.forEach((artwork) => { artwork.position = null; });
+    update();
+  });
 });
 el.fit.addEventListener("click", fitDrawing);
 el.zoomIn.addEventListener("click", () => {

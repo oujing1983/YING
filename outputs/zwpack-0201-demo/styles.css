@@ -345,7 +345,7 @@ legend { padding-bottom: 11px; font-size: 14px; }
 .flip-sketch { position: relative; gap: 2px; }
 .flip-sketch i { width: 11px !important; height: 22px !important; border: 1px solid var(--blue) !important; background: #f2f7ff; }
 .flip-sketch i:nth-child(2) { height: 31px !important; border-radius: 7px 7px 0 0; }
-body[data-box-type="mortise-flip"] .field-0201-only { display: none !important; }
+body[data-box-type="double-lock-inner"] .field-0201-only { display: none !important; }
 
 .segmented { border-radius: 8px; background: #f0f1f3; }
 .segmented span { border-radius: 6px; padding: 8px; font-size: 13px; }
