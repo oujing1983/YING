@@ -251,6 +251,16 @@ function CarouselTab() {
   const [newImage, setNewImage] = useState('')
   useEffect(() => { fetch('/api/admin/carousel').then(r => r.json()).then(setSlides) }, [])
 
+  function updateSlide(id: number, key: string, value: string) {
+    setSlides(current => current.map(slide => slide.id === id ? { ...slide, [key]: value } : slide))
+  }
+
+  async function saveSlides(nextSlides = slides) {
+    const response = await fetch('/api/admin/carousel', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('admin_token') }, body: JSON.stringify(nextSlides) })
+    if (!response.ok) { alert('轮播图保存失败，请重新登录后再试'); return false }
+    return true
+  }
+
   async function uploadSlideImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]; if (!file) return
     const reader = new FileReader()
@@ -266,21 +276,20 @@ function CarouselTab() {
     if (!title) { alert('请填写标题'); return }
     const img = newImage || 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=1920&q=80'
     const updated = [...slides, { id: Date.now(), image: img, title, subtitle }]
-    const response = await fetch('/api/admin/carousel', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('admin_token') }, body: JSON.stringify(updated) })
-    if (!response.ok) { alert('轮播图保存失败，请重新登录后再试'); return }
+    if (!await saveSlides(updated)) return
     setSlides(updated); setTitle(''); setSubtitle(''); setNewImage(''); alert('轮播图已保存，前台刷新后即可看到')
   }
 
   async function removeSlide(id: number) {
     const updated = slides.filter((s: any) => s.id !== id)
-    const response = await fetch('/api/admin/carousel', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('admin_token') }, body: JSON.stringify(updated) })
-    if (!response.ok) { alert('删除失败，请重新登录后再试'); return }
+    if (!await saveSlides(updated)) return
     setSlides(updated)
   }
 
   return (
     <div>
       <h2 style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', margin: '0 0 24px' }}>轮播图管理</h2>
+      <p style={{ margin: '-12px 0 20px', color: '#64748B', fontSize: 13 }}>首页首屏启用轮播后，标题、副标题和按钮以这里每一张轮播图的内容为准。</p>
       <div style={{ background: '#fff', borderRadius: 12, padding: 20, border: '1px solid #E2E8F0', marginBottom: 24 }}>
         <input placeholder="标题" value={title} onChange={e => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 14, marginBottom: 8, boxSizing: 'border-box' }} />
         <input placeholder="副标题" value={subtitle} onChange={e => setSubtitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 14, marginBottom: 8, boxSizing: 'border-box' }} />
@@ -293,7 +302,11 @@ function CarouselTab() {
       {slides.map((s: any) => (
         <div key={s.id} style={{ display: 'flex', gap: 12, background: '#fff', borderRadius: 12, padding: 12, border: '1px solid #E2E8F0', marginBottom: 8, alignItems: 'center' }}>
           <img src={s.image} alt={s.title} style={{ width: 160, height: 90, objectFit: 'cover', borderRadius: 8 }} />
-          <div style={{ flex: 1 }}><div style={{ fontWeight: 600, fontSize: 14 }}>{s.title}</div><div style={{ fontSize: 12, color: '#94A3B8' }}>{s.subtitle}</div></div>
+          <div style={{ flex: 1, display: 'grid', gap: 6 }}>
+            <input value={s.title || ''} onChange={e => updateSlide(s.id, 'title', e.target.value)} placeholder="轮播标题" style={{ width: '100%', padding: '7px 9px', borderRadius: 5, border: '1px solid #E2E8F0', fontSize: 13, boxSizing: 'border-box' }} />
+            <textarea value={s.subtitle || ''} onChange={e => updateSlide(s.id, 'subtitle', e.target.value)} placeholder="轮播副标题" rows={2} style={{ width: '100%', padding: '7px 9px', borderRadius: 5, border: '1px solid #E2E8F0', fontSize: 12, resize: 'vertical', boxSizing: 'border-box' }} />
+          </div>
+          <button onClick={async () => { if (await saveSlides()) alert('轮播图文案已保存') }} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: '#2563EB', color: '#fff', fontSize: 12, cursor: 'pointer' }}>保存</button>
           <button onClick={() => removeSlide(s.id)} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#EF4444', fontSize: 12, cursor: 'pointer' }}>删除</button>
         </div>
       ))}
@@ -362,15 +375,16 @@ function SiteTab() {
           {key:'heroTitle', label:'大标题'},
           {key:'heroSubtitle', label:'副标题', rows:2},
         ])}
+        <p style={{ margin: '-4px 0 18px', padding: '10px 12px', borderRadius: 6, background: '#EFF6FF', color: '#1D4ED8', fontSize: 12, lineHeight: 1.6 }}>提示：当“轮播图”中存在内容时，首页首屏标题和副标题以轮播图管理中的文案为准；这里的 Hero 文案作为没有轮播图时的备用内容。</p>
 
         <div style={{ marginBottom: 16, padding: 14, background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}
-                onClick={() => setData({...data, show优势: data['show优势'] === false ? true : false})}>
-                <div style={{ width: 40, height: 22, borderRadius: 11, background: data['show优势'] === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data['show优势'] === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                onClick={() => setData({...data, showAdvantages: data.showAdvantages === false ? true : false})}>
+                <div style={{ width: 40, height: 22, borderRadius: 11, background: data.showAdvantages === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data.showAdvantages === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
                 </div>
                 <span style={{ fontSize: 13, color: '#0F172A', fontWeight: 600, userSelect: 'none' }}>优势板块</span>
-                <span style={{ fontSize: 11, color: data['show优势'] === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data['show优势'] === false ? '已隐藏' : '显示中'}</span>
+                <span style={{ fontSize: 11, color: data.showAdvantages === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data.showAdvantages === false ? '已隐藏' : '显示中'}</span>
               </div>
               <input value={data['advantagesEyebrow'] || ''} onChange={e => setData({...data, 'advantagesEyebrow': e.target.value})}
                 placeholder="小标题"
@@ -397,12 +411,12 @@ function SiteTab() {
               <label htmlFor={'img-show优势'} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 10px', borderRadius: 4, border: '1px dashed #94A3B8', color: '#64748B', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>+ 添加</label>
         </div>        <div style={{ marginBottom: 16, padding: 14, background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}
-                onClick={() => setData({...data, show行业覆盖: data['show行业覆盖'] === false ? true : false})}>
-                <div style={{ width: 40, height: 22, borderRadius: 11, background: data['show行业覆盖'] === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data['show行业覆盖'] === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                onClick={() => setData({...data, showIndustries: data.showIndustries === false ? true : false})}>
+                <div style={{ width: 40, height: 22, borderRadius: 11, background: data.showIndustries === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data.showIndustries === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
                 </div>
                 <span style={{ fontSize: 13, color: '#0F172A', fontWeight: 600, userSelect: 'none' }}>行业覆盖</span>
-                <span style={{ fontSize: 11, color: data['show行业覆盖'] === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data['show行业覆盖'] === false ? '已隐藏' : '显示中'}</span>
+                <span style={{ fontSize: 11, color: data.showIndustries === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data.showIndustries === false ? '已隐藏' : '显示中'}</span>
               </div>
               <input value={data['industriesEyebrow'] || ''} onChange={e => setData({...data, 'industriesEyebrow': e.target.value})}
                 placeholder="小标题"
@@ -429,12 +443,12 @@ function SiteTab() {
               <label htmlFor={'img-show行业覆盖'} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 10px', borderRadius: 4, border: '1px dashed #94A3B8', color: '#64748B', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>+ 添加</label>
         </div>        <div style={{ marginBottom: 16, padding: 14, background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}
-                onClick={() => setData({...data, show合作流程: data['show合作流程'] === false ? true : false})}>
-                <div style={{ width: 40, height: 22, borderRadius: 11, background: data['show合作流程'] === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data['show合作流程'] === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                onClick={() => setData({...data, showProcess: data.showProcess === false ? true : false})}>
+                <div style={{ width: 40, height: 22, borderRadius: 11, background: data.showProcess === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data.showProcess === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
                 </div>
                 <span style={{ fontSize: 13, color: '#0F172A', fontWeight: 600, userSelect: 'none' }}>合作流程</span>
-                <span style={{ fontSize: 11, color: data['show合作流程'] === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data['show合作流程'] === false ? '已隐藏' : '显示中'}</span>
+                <span style={{ fontSize: 11, color: data.showProcess === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data.showProcess === false ? '已隐藏' : '显示中'}</span>
               </div>
               <input value={data['processEyebrow'] || ''} onChange={e => setData({...data, 'processEyebrow': e.target.value})}
                 placeholder="小标题"
@@ -461,12 +475,12 @@ function SiteTab() {
               <label htmlFor={'img-show合作流程'} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 10px', borderRadius: 4, border: '1px dashed #94A3B8', color: '#64748B', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>+ 添加</label>
         </div>        <div style={{ marginBottom: 16, padding: 14, background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}
-                onClick={() => setData({...data, show工厂实力: data['show工厂实力'] === false ? true : false})}>
-                <div style={{ width: 40, height: 22, borderRadius: 11, background: data['show工厂实力'] === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data['show工厂实力'] === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                onClick={() => setData({...data, showFactory: data.showFactory === false ? true : false})}>
+                <div style={{ width: 40, height: 22, borderRadius: 11, background: data.showFactory === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data.showFactory === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
                 </div>
                 <span style={{ fontSize: 13, color: '#0F172A', fontWeight: 600, userSelect: 'none' }}>工厂实力</span>
-                <span style={{ fontSize: 11, color: data['show工厂实力'] === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data['show工厂实力'] === false ? '已隐藏' : '显示中'}</span>
+                <span style={{ fontSize: 11, color: data.showFactory === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data.showFactory === false ? '已隐藏' : '显示中'}</span>
               </div>
               <input value={data['factoryEyebrow'] || ''} onChange={e => setData({...data, 'factoryEyebrow': e.target.value})}
                 placeholder="小标题"
@@ -493,12 +507,12 @@ function SiteTab() {
               <label htmlFor={'img-show工厂实力'} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 10px', borderRadius: 4, border: '1px dashed #94A3B8', color: '#64748B', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>+ 添加</label>
         </div>        <div style={{ marginBottom: 16, padding: 14, background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}
-                onClick={() => setData({...data, show产品中心: data['show产品中心'] === false ? true : false})}>
-                <div style={{ width: 40, height: 22, borderRadius: 11, background: data['show产品中心'] === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data['show产品中心'] === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                onClick={() => setData({...data, showProducts: data.showProducts === false ? true : false})}>
+                <div style={{ width: 40, height: 22, borderRadius: 11, background: data.showProducts === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data.showProducts === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
                 </div>
                 <span style={{ fontSize: 13, color: '#0F172A', fontWeight: 600, userSelect: 'none' }}>产品中心</span>
-                <span style={{ fontSize: 11, color: data['show产品中心'] === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data['show产品中心'] === false ? '已隐藏' : '显示中'}</span>
+                <span style={{ fontSize: 11, color: data.showProducts === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data.showProducts === false ? '已隐藏' : '显示中'}</span>
               </div>
               <input value={data['productsEyebrow'] || ''} onChange={e => setData({...data, 'productsEyebrow': e.target.value})}
                 placeholder="小标题"
@@ -525,12 +539,12 @@ function SiteTab() {
               <label htmlFor={'img-show产品中心'} style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 10px', borderRadius: 4, border: '1px dashed #94A3B8', color: '#64748B', fontSize: 11, cursor: 'pointer', marginTop: 4 }}>+ 添加</label>
         </div>        <div style={{ marginBottom: 16, padding: 14, background: '#fff', borderRadius: 10, border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 12 }}
-                onClick={() => setData({...data, show联系我们: data['show联系我们'] === false ? true : false})}>
-                <div style={{ width: 40, height: 22, borderRadius: 11, background: data['show联系我们'] === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data['show联系我们'] === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
+                onClick={() => setData({...data, showContact: data.showContact === false ? true : false})}>
+                <div style={{ width: 40, height: 22, borderRadius: 11, background: data.showContact === false ? '#CBD5E1' : '#2563EB', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 9, background: '#fff', position: 'absolute', top: 2, left: data.showContact === false ? 2 : 20, transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.15)' }} />
                 </div>
                 <span style={{ fontSize: 13, color: '#0F172A', fontWeight: 600, userSelect: 'none' }}>联系我们</span>
-                <span style={{ fontSize: 11, color: data['show联系我们'] === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data['show联系我们'] === false ? '已隐藏' : '显示中'}</span>
+                <span style={{ fontSize: 11, color: data.showContact === false ? '#EF4444' : '#22C55E', fontWeight: 500 }}>{data.showContact === false ? '已隐藏' : '显示中'}</span>
               </div>
               <input value={data['contactEyebrow'] || ''} onChange={e => setData({...data, 'contactEyebrow': e.target.value})}
                 placeholder="小标题"

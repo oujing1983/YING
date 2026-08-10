@@ -27,7 +27,7 @@ export default function Factory() {
   return (
     <section id="factory" className="section-padding bg-white">
       <Container>
-        <SectionTitle eyebrow={site2.factoryEyebrow || "工厂实力"} title={site2.factoryTitle || "现代化生产，品质保障"} description={site2.factoryDesc || "拥有先进的生产设备和严格的品控体系，确保每一个产品都符合标准。"} />
+        <SectionTitle eyebrow={site2.factoryEyebrow} title={site2.factoryTitle} description={site2.factoryDesc} />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
           {stats.map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.1 }}

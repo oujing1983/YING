@@ -23,16 +23,16 @@ export default function Hero() {
 
   return (
     <section id="top" className="relative min-h-screen flex items-center overflow-hidden bg-navy-500">
-      <div className="absolute inset-0 bg-cover bg-center transition-all duration-700" style={{ backgroundImage: `url(${slide.image || site.heroBgImage || '/assets/logo.jpg'})` }} />
+      <div className="absolute inset-0 bg-cover bg-center transition-all duration-700" style={{ backgroundImage: slide.image || site.heroBgImage ? `url(${slide.image || site.heroBgImage})` : undefined }} />
       <div className="absolute inset-0 bg-gradient-to-r from-navy-500/95 via-navy-500/80 to-navy-500/60" />
       <div className="relative container-wide pt-24 pb-20">
         <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, ease: "easeOut" }} className="max-w-2xl">
-          <span className="inline-block text-xs font-semibold text-tech-light uppercase tracking-[0.2em] mb-5">{site.heroEyebrow || "至微包装 · ZW PACK"}</span>
+          <span className="inline-block text-xs font-semibold text-tech-light uppercase tracking-[0.2em] mb-5">{site.heroEyebrow}</span>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] tracking-tight">
-            {slide.title || site.heroTitle || "一站式包装解决方案"}
+            {slide.title ?? site.heroTitle}
           </h1>
           <p className="mt-6 text-lg md:text-xl text-white/60 leading-relaxed max-w-xl">
-            {slide.subtitle || site.heroSubtitle || "专注纸箱、气泡袋、珍珠棉包装产品定制，为客户提供高品质包装解决方案。"}
+            {slide.subtitle ?? site.heroSubtitle}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             {slide.primaryUrl ? <a href={slide.primaryUrl} target={slide.external ? "_blank" : undefined} rel={slide.external ? "noopener noreferrer" : undefined} className="btn-primary text-base px-8 py-3.5">{slide.primaryLabel || "了解更多"}</a> : <Link href="/contact" className="btn-primary text-base px-8 py-3.5">立即询价</Link>}

@@ -24,7 +24,7 @@ export default function Products() {
   return (
     <section id="products" className="section-padding bg-white">
       <Container>
-        <SectionTitle eyebrow={site.productsEyebrow || "产品中心"} title={site.productsTitle || "主营产品"} description={site.productsDesc || "四大核心包装产品，全部支持按需定制，满足不同行业需求。"} />
+        <SectionTitle eyebrow={site.productsEyebrow} title={site.productsTitle} description={site.productsDesc} />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {products.map((product: any, i: number) => (
             <motion.div key={product.id || i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 0.5, delay: i * 0.1 }}>

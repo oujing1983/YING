@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readData, writeData } from '@/lib/data'
+import { writeData } from '@/lib/data'
 import { verifyToken } from '@/lib/auth'
+import { getSiteConfig } from '@/lib/siteDefaults'
 
 export async function GET() {
-  const data = readData('site', { factoryImages: [] })
-  return NextResponse.json(data)
+  return NextResponse.json(getSiteConfig(), { headers: { 'Cache-Control': 'no-store' } })
 }
 
 export async function PUT(req: NextRequest) {

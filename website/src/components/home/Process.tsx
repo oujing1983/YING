@@ -19,9 +19,9 @@ export default function Process() {
     <section id="process" className="section-padding bg-white overflow-hidden">
       <Container>
         <SectionTitle
-          eyebrow={site.processEyebrow || "合作流程"}
-          title={site.processTitle || "四步确认，减少沟通成本"}
-          description={site.processDesc || "从咨询到交付，流程清晰透明，让合作更高效。"}
+          eyebrow={site.processEyebrow}
+          title={site.processTitle}
+          description={site.processDesc}
         />
         <div className="relative">
           {/* Timeline line (desktop) */}

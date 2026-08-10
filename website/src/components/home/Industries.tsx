@@ -21,9 +21,9 @@ export default function Industries() {
     <section id="industries" className="section-padding bg-surface">
       <Container>
         <SectionTitle
-          eyebrow={site.industriesEyebrow || "服务行业"}
-          title={site.industriesTitle || "覆盖多个行业领域"}
-          description={site.industriesDesc || "我们的包装产品广泛应用于多个行业，为不同领域提供专业的包装解决方案。"}
+          eyebrow={site.industriesEyebrow}
+          title={site.industriesTitle}
+          description={site.industriesDesc}
         />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {industries.map((item, i) => {

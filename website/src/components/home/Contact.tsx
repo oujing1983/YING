@@ -48,9 +48,9 @@ export default function Contact() {
           {/* Info */}
           <div className="lg:col-span-2">
             <SectionTitle
-              eyebrow={site.contactEyebrow || "联系我们"}
-              title={site.contactTitle || "获取报价"}
-              description={site.contactDesc || "告诉我们你的包装需求，我们会尽快与你联系。"}
+              eyebrow={site.contactEyebrow}
+              title={site.contactTitle}
+              description={site.contactDesc}
               centered={false}
             />
             <div className="space-y-4 mt-8">

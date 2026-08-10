@@ -2,13 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { readData } from "@/lib/data";
 import { SiteProvider } from "@/components/SiteProvider";
+import { getSiteConfig } from "@/lib/siteDefaults";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const site: any = readData('site', {})
-  const carousel: any[] = readData('carousel', [])
-  site.carouselImages = carousel
+  const site: any = getSiteConfig()
   const title = site.seoTitle || '至微包装 | 一站式包装解决方案'
   const description = site.seoDescription || '至微包装专注纸箱、气泡袋、珍珠棉包装产品定制，为客户提供高品质包装解决方案。'
   return {
@@ -24,7 +23,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const site: any = readData('site', {})
+  const site: any = getSiteConfig()
+  const carousel: any[] = readData('carousel', [])
+  site.carouselImages = carousel
   const baiduId = site.baiduAnalytics || ''
   const headScript = site.headScript || ''
 
