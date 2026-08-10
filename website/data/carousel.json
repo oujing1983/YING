@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "image": "https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=1920&q=80",
+    "title": "一站式包装解决方案",
+    "subtitle": "专注纸箱、气泡袋、珍珠棉包装产品定制"
+  },
+  {
+    "id": 2,
+    "image": "https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1920&q=80",
+    "title": "更多专业包装箱型",
+    "subtitle": "以下入口将前往第三方 Pacdora 工具；至微包装不对第三方生成结果负责，正式生产尺寸需经人工确认。",
+    "primaryUrl": "https://www.pacdora.cn/dielines",
+    "primaryLabel": "前往 Pacdora（第三方）",
+    "external": true
+  }
+]

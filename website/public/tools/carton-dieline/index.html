@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="description" content="zwpack.cn FEFCO 0201 在线纸箱理论刀版预览 Demo">
+  <title>ZWPACK · 0201 理论刀版 Demo</title>
+  <link rel="stylesheet" href="styles.css?v=20260809-2">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="ZWPACK 首页">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>ZWPACK</span>
+      </a>
+      <div class="status-strip">
+        <span class="live-dot"></span>
+        <span id="boxTypeStatus">FEFCO 0201 · 理论预览</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="font-switcher" role="group" aria-label="选择字体大小">
+          <button type="button" data-font-size="small" aria-label="小字体">小</button>
+          <button type="button" data-font-size="standard" class="active" aria-label="标准字体">标准</button>
+          <button type="button" data-font-size="large" aria-label="大字体">大</button>
+        </div>
+        <button class="quiet-button" id="resetButton" type="button">恢复示例</button>
+      </div>
+    </header>
+
+    <section class="workspace">
+      <aside class="control-panel" aria-label="纸箱参数">
+        <div class="panel-heading">
+          <p class="eyebrow" id="boxTypeEyebrow">FEFCO 0201</p>
+          <h1>自定义纸箱尺寸</h1>
+          <p class="intro">输入成箱数据，实时生成理论展开图。</p>
+        </div>
+
+        <form id="boxForm" novalidate>
+          <fieldset>
+            <legend>选择箱型</legend>
+            <div class="box-type-grid" role="radiogroup" aria-label="选择箱型">
+              <label class="box-type-option">
+                <input type="radio" name="boxType" value="0201" checked>
+                <span class="box-type-sketch" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                <span class="box-type-copy"><b>0201</b><small>普通开槽箱</small></span>
+                <em>当前</em>
+              </label>
+              <label class="box-type-option">
+                <input type="radio" name="boxType" value="double-lock-inner">
+                <span class="box-type-sketch flip-sketch" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span class="box-type-copy"><b>双扣内盒</b><small>矢量母版 · 理论预览</small></span>
+                <em>可选</em>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>尺寸类型</legend>
+            <div class="segmented" role="radiogroup" aria-label="尺寸类型">
+              <label><input type="radio" name="dimensionType" value="inside" checked><span>内尺寸</span></label>
+              <label><input type="radio" name="dimensionType" value="outside"><span>外尺寸</span></label>
+            </div>
+            <p class="field-note" id="conversionNote">Demo 暂按输入值生成；正式换算规则由后台配置。</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>成箱尺寸 <small>mm</small></legend>
+            <div class="dimensions-grid">
+              <label>
+                <span><b>L</b> 长</span>
+                <input id="lengthInput" name="length" type="number" min="50" max="1200" step="1" value="500" inputmode="decimal">
+              </label>
+              <label>
+                <span><b>W</b> 宽</span>
+                <input id="widthInput" name="width" type="number" min="50" max="800" step="1" value="380" inputmode="decimal">
+              </label>
+              <label>
+                <span><b>H</b> 高</span>
+                <input id="heightInput" name="height" type="number" min="50" max="1000" step="1" value="400" inputmode="decimal">
+              </label>
+              <label class="field-0201-only">
+                <span><b>G</b> 接舌</span>
+                <input id="glueInput" name="glue" type="number" min="10" max="150" step="1" value="60" inputmode="decimal">
+              </label>
+            </div>
+            <p class="error-message" id="dimensionError" role="alert"></p>
+            <div class="area-card">
+              <span>供应商计价面积</span>
+              <strong id="boardArea">—</strong>
+              <code id="areaFormula">—</code>
+              <small>L/W/H 先由 mm 换算为 cm；+8cm 与 +4cm 是供应商计价使用的修边放量，不改变刀版 Geometry。</small>
+            </div>
+            <label class="adjustment-field field-0201-only">
+              <span><b>ΔF</b> 摇盖总补偿</span>
+              <span class="adjustment-input"><input id="flapAdjustmentInput" name="flapAdjustment" type="number" min="-50" max="100" step="0.1" value="26.6" inputmode="decimal"><i>mm</i></span>
+            </label>
+            <p class="field-note field-0201-only">用于匹配本厂压线与材料经验值；它平均分配到上、下摇盖。</p>
+          </fieldset>
+
+          <fieldset>
+            <legend>纸板材料</legend>
+            <div class="material-grid" id="materialGrid"></div>
+            <div class="material-readout">
+              <span>后台示例厚度</span>
+              <strong id="materialThickness">—</strong>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>印刷图片 <small>可多选</small></legend>
+            <label class="upload-button" for="artworkInput">
+              <span>＋</span>
+              <strong>添加 Logo 或图片</strong>
+              <small>PNG、JPG、WebP、SVG，单张不超过 5MB</small>
+            </label>
+            <input class="visually-hidden" id="artworkInput" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" multiple>
+            <div class="artwork-list" id="artworkList"></div>
+            <p class="field-note">图片仅在本机预览，并会嵌入下载的 SVG；上传后可在整张展开图上自由拖动。</p>
+          </fieldset>
+        </form>
+
+        <div class="assumption-card">
+          <span class="assumption-icon">ƒ</span>
+          <div>
+            <strong id="ruleTitle">当前摇盖规则</strong>
+            <code id="ruleFormula">FlapDepth = (W + ΔF) ÷ 2</code>
+            <p id="ruleNote">当前 ΔF=26.6 mm，用于复现本次工厂计算结果；正式系统由后台维护。</p>
+          </div>
+        </div>
+      </aside>
+
+      <section class="drawing-stage" aria-label="0201 刀版预览">
+        <div class="drawing-toolbar">
+          <div>
+            <div class="canvas-legend">
+              <span><i class="legend-cut"></i>刀线</span>
+              <span><i class="legend-crease"></i>折线</span>
+              <span><i class="legend-dimension"></i>尺寸</span>
+            </div>
+            <p class="canvas-meta-label">理论制造尺寸</p>
+            <strong class="canvas-meta-value" id="manufacturingSummary">—</strong>
+          </div>
+          <div class="toolbar-actions">
+            <button type="button" class="tool-button icon-tool" id="zoomOutButton" title="缩小" aria-label="缩小">−</button>
+            <button type="button" class="tool-button icon-tool" id="zoomInButton" title="放大" aria-label="放大">＋</button>
+            <button type="button" class="tool-button" id="fitButton" title="适合画布">适配</button>
+            <span class="toolbar-separator"></span>
+            <button type="button" class="tool-button" id="downloadButton">SVG</button>
+            <button type="button" class="tool-button" id="printButton">PDF</button>
+            <button type="button" class="tool-button icon-tool" id="settingsButton" title="显示设置" aria-label="显示设置">☷</button>
+          </div>
+        </div>
+
+        <div class="canvas-wrap" id="canvasWrap">
+          <div class="canvas-grid"></div>
+          <svg id="drawing" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="drawingTitle drawingDesc">
+            <title id="drawingTitle">FEFCO 0201 理论展开刀版</title>
+            <desc id="drawingDesc">由四个连续箱身面、粘合舌和上下摇盖组成的纸箱展开结构。</desc>
+            <g id="viewport"></g>
+          </svg>
+          <div class="zoom-readout" id="zoomReadout">100%</div>
+          <div class="display-settings" id="displaySettings" hidden>
+            <label><input type="checkbox" id="toggleOverall" checked><span></span>显示整体尺寸</label>
+            <label><input type="checkbox" id="toggleBasic" checked><span></span>显示基本尺寸</label>
+            <label><input type="checkbox" id="toggleFaces"><span></span>显示面名称</label>
+          </div>
+        </div>
+
+        <footer class="drawing-footer">
+          <div class="legend">
+            <span><i class="cut-swatch"></i>刀线 CUT</span>
+            <span><i class="crease-swatch"></i>压线 CREASE</span>
+            <span><i class="face-swatch"></i>连续纸板 FACE</span>
+          </div>
+          <div class="metrics">
+            <span>展开宽 <strong id="overallWidth">—</strong></span>
+            <span>展开高 <strong id="overallHeight">—</strong></span>
+          </div>
+        </footer>
+      </section>
+    </section>
+
+    <section class="lead-strip">
+      <div>
+        <p class="eyebrow">下一步 / 人工确认</p>
+        <h2>需要报价？把这组尺寸交给纸箱厂。</h2>
+        <p>Demo 不会提交数据。正式版会把尺寸、材料与 Geometry 快照一并发送给业务人员。</p>
+      </div>
+      <button class="lead-button" type="button" id="leadButton">模拟提交询盘 <span>→</span></button>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script src="app.js?v=20260809-2"></script>
+</body>
+</html>

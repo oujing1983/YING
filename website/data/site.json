@@ -1,0 +1,25 @@
+{
+  "logo": "ZW",
+  "logoImage": "/uploads/img-1783419161294.png",
+  "heroTitle": "一站式包装解决方案",
+  "heroSubtitle": "至微包装坐落在浙江乐清，专注纸箱定制、气泡袋、珍珠棉袋和珍珠棉异形件生产，为温州、台州、杭州及浙江省内电商、电子、汽配、医疗行业提供包装定制服务。",
+  "factoryImages": [
+    {
+      "src": "https://www.zwpack.cn/uploads/img-1783384331341.jpg",
+      "label": "工厂实景"
+    },
+    {
+      "src": "https://www.zwpack.cn/uploads/img-1783384353724.jpg",
+      "label": "生产线"
+    },
+    {
+      "src": "https://www.zwpack.cn/uploads/img-1783384367464.jpg",
+      "label": "仓储"
+    },
+    {
+      "src": "https://www.zwpack.cn/uploads/img-1783384392742.jpg",
+      "label": "发货"
+    }
+  ],
+  "showHero": true
+}
