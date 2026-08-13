@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>珍珠棉分层设计 Demo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">ZW</span><div><strong>珍珠棉设计台</strong><small>二维画图 · 分层预览</small></div></div>
+
+      <section>
+        <div class="section-heading"><span>成品尺寸</span><em>mm</em></div>
+        <div class="field-grid three">
+          <label>长度 L<input id="length" type="number" min="20" value="390"></label>
+          <label>宽度 W<input id="width" type="number" min="20" value="250"></label>
+          <label>总高 H<input id="height" type="number" min="1" value="40"></label>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-heading"><span>二维绘图</span><em>孔可以异形</em></div>
+        <div class="edit-actions">
+          <button id="undoBtn" title="撤销 (⌘Z)">↶<span>返回</span></button>
+          <button id="redoBtn" title="重做 (⇧⌘Z)">↷<span>前进</span></button>
+          <button id="copyBtn" title="复制 (⌘C)">⧉<span>复制</span></button>
+          <button id="pasteBtn" title="粘贴 (⌘V)">▣<span>粘贴</span></button>
+        </div>
+        <div class="tool-grid">
+          <button class="tool active" data-tool="select" title="选择工具 (V)">↖<span>选择 <kbd>V</kbd></span></button>
+          <button class="tool" data-tool="pen" title="贝塞尔钢笔 (P)：按住拖动产生曲线">⌁<span>曲线钢笔 <kbd>P</kbd></span></button>
+          <button class="tool" data-tool="rect" title="矩形工具 (M)">▭<span>矩形 <kbd>M</kbd></span></button>
+          <button class="tool" data-tool="circle" title="圆形工具 (O)">○<span>圆形 <kbd>O</kbd></span></button>
+          <button class="tool" data-tool="polygon" title="正多边形工具 (G)">⬡<span>多边形 <kbd>G</kbd></span></button>
+          <button class="tool" id="toggleEdges">⫶<span>边长</span></button>
+          <button class="tool danger" id="deleteShape">⌫<span>删除</span></button>
+        </div>
+        <div id="drawStatus" class="draw-status"><i></i><span>未在绘制</span><button id="finishOpen" disabled>完成开放线</button><button id="finishPath" disabled>闭合图形</button><button id="cancelPath" disabled>取消</button></div>
+        <p class="hint" id="toolHint">拖动孔或蓝色节点调整形状。</p>
+        <div id="objectProperties" class="object-properties">
+          <div class="property-empty">选择图形或直线后可调整属性</div>
+          <div class="rect-fields">
+            <label>矩形长度<input id="rectWidth" type="number" min="1" step="1"><b>mm</b></label>
+            <label>矩形宽度<input id="rectHeight" type="number" min="1" step="1"><b>mm</b></label>
+            <label>切入深度<input id="cutDepth" type="number" min="0" step="1"><b>mm</b></label>
+          </div>
+          <div class="polygon-fields">
+            <label>多边形边数<input id="polygonSides" type="number" min="3" max="12" step="1" value="6"><b>边</b></label>
+          </div>
+          <label data-prop="lineWidth">线条厚度<input id="lineWidth" type="number" min="0" step="1" value="0"><b>mm</b></label>
+          <button id="duplicateBtn" data-prop="duplicate">原位复制并偏移</button>
+        </div>
+        <div class="action-row">
+          <button id="toggleDimensions" class="secondary active">显示总尺寸</button>
+          <button id="zoomOut" class="secondary" title="缩小画布">－</button>
+          <button id="zoomIn" class="secondary" title="放大画布">＋</button>
+          <button id="fitView" class="secondary">适合画布</button>
+        </div>
+      </section>
+
+      <section>
+        <div class="section-heading"><span>粘合层</span><button id="addLayer" class="text-button">＋ 添加层</button></div>
+        <div id="layerList" class="layer-list"></div>
+        <div class="height-check"><span>层高合计</span><strong id="heightSum">40 mm</strong></div>
+      </section>
+
+      <section class="notice">
+        <strong>Demo 说明</strong>
+        <p>二维轮廓和层厚会同步生成三维预览。当前结果用于方案沟通，不含刀缝、压缩量和粘合补偿。</p>
+      </section>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div><span class="eyebrow">EPE LAYER WORKBENCH</span><h1>画一层，看完整结构</h1></div>
+        <div class="status"><i></i><span>实时计算</span></div>
+      </header>
+
+      <div class="stage-grid">
+        <article class="panel drawing-panel">
+          <div class="panel-title"><div><strong>二维版图</strong><span>曲线靠近起点时会高亮；点击起点闭合</span></div><div class="legend"><i class="cut"></i>切割线<i class="dim"></i>尺寸</div></div>
+          <div class="canvas-wrap" id="canvasWrap">
+            <svg id="editor" aria-label="二维珍珠棉版图"></svg>
+          </div>
+          <div class="selection-bar"><span>当前选择</span><strong id="selectionName">异形孔 01</strong><span id="selectionSize">160 × 100 mm</span></div>
+        </article>
+
+        <article class="panel preview-panel">
+          <div class="panel-title"><div><strong>三维分层</strong><span>拖动旋转 · 滚轮缩放</span></div><button id="reset3d" class="secondary compact">重置视角</button></div>
+          <div id="preview3d" class="preview3d">
+            <svg id="iso" aria-label="三维珍珠棉预览"></svg>
+            <div class="axis"><span class="x">X</span><span class="y">Y</span><span class="z">Z</span></div>
+          </div>
+          <div class="summary">
+            <div><span>外形</span><strong id="summarySize">390 × 250 × 40</strong><small>mm</small></div>
+            <div><span>层数</span><strong id="summaryLayers">3</strong><small>层</small></div>
+            <div><span>开孔</span><strong id="summaryHoles">1</strong><small>个</small></div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  <script src="polygon-clipping.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
