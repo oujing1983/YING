@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-label="包装结构设计工具">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#0a1730"/>
+      <stop offset="1" stop-color="#12356a"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#80b9ff" stroke-opacity=".13" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <rect width="1920" height="1080" fill="url(#grid)"/>
+  <g transform="translate(1040 210)" fill="none" stroke="#7bb8ff" stroke-width="5" opacity=".9">
+    <path d="M0 205h180v-95h250v95h180v245H430v95H180v-95H0z"/>
+    <path d="M180 205v245M430 205v245M0 205h610M0 450h610" stroke-dasharray="16 12" opacity=".65"/>
+    <path d="M130 685l250-125 250 125-250 125z" stroke="#ffc76b"/>
+    <path d="M130 635l250-125 250 125M130 585l250-125 250 125" stroke="#ffc76b" opacity=".55"/>
+  </g>
+  <g fill="#b9d8ff" font-family="Arial,sans-serif" font-size="22" opacity=".72">
+    <text x="1070" y="185">GEOMETRY · REAL MM</text>
+    <text x="1390" y="870">2D → 3D</text>
+  </g>
+</svg>

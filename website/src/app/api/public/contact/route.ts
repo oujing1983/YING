@@ -8,7 +8,7 @@ export async function GET() {
     email: '309985325@qq.com',
     address: '',
     company: '至微包装有限公司',
-    wechatQr: '',
+    wechatQr: '/brand/wechat-qr.jpg',
     csPhone: '18005770078',
   }
   const data = readData('contact', fallback)

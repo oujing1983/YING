@@ -2,10 +2,9 @@
 
 import { motion } from "framer-motion";
 import { useSite } from "@/components/SiteProvider";
-import { Settings, FlaskConical, ShieldCheck, Package, Truck, Headphones, ArrowRight, Ruler } from "lucide-react";
+import { Settings, FlaskConical, ShieldCheck, Package, Truck, Headphones } from "lucide-react";
 import Container from "@/components/ui/Container";
 import SectionTitle from "@/components/ui/SectionTitle";
-import Link from "next/link";
 
 const advantages = [
   { icon: Settings, title: "定制生产", desc: "按需定制规格、材质、印刷，灵活满足各种需求。" },
@@ -26,18 +25,7 @@ export default function Advantages() {
           title={site.advantagesTitle}
           description={site.advantagesDesc}
         />
-        <div className="mb-8 flex flex-col gap-6 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-white p-6 shadow-sm md:flex-row md:items-center md:justify-between md:p-8">
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white"><Ruler size={24} /></div>
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">ZWPACK 在线工具</span>
-              <h3 className="mt-1 text-xl font-bold text-navy-500">在线纸箱刀版预览</h3>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-500">输入纸箱长、宽、高，生成 FEFCO 0201 理论展开图并下载 SVG 或 PDF。生成结果用于结构预览和询价，正式生产尺寸由至微包装人工确认。</p>
-            </div>
-          </div>
-          <Link href="/tools/carton-dieline" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">打开刀版工具 <ArrowRight size={16} /></Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 border-t border-slate-300 md:grid-cols-2">
           {advantages.map((item, i) => {
             const Icon = item.icon;
             return (
@@ -47,13 +35,12 @@ export default function Advantages() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
-                className="group p-6 md:p-8 rounded-2xl bg-white border border-gray-100 hover:border-tech-blue/20 hover:shadow-lg hover:shadow-tech-blue/5 transition-all duration-300"
+                className={`group grid grid-cols-[48px_1fr] gap-5 border-b border-slate-300 py-7 md:p-8 ${i % 2 === 0 ? "md:border-r" : ""}`}
               >
-                <div className="w-12 h-12 rounded-xl bg-tech-blue/5 flex items-center justify-center mb-5 group-hover:bg-tech-blue/10 transition-colors">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50">
                   <Icon className="w-6 h-6 text-tech-blue" />
                 </div>
-                <h3 className="text-lg font-bold text-navy-500 mb-2">{item.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{item.desc}</p>
+                <div><h3 className="mb-2 text-lg font-bold text-navy-500">{item.title}</h3><p className="text-sm leading-6 text-slate-500">{item.desc}</p></div>
               </motion.div>
             );
           })}

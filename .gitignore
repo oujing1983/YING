@@ -1,3 +1,7 @@
 .DS_Store
 *.log
 work/
+tmp/
+website/.next/
+website/node_modules/
+website/next-env.d.ts

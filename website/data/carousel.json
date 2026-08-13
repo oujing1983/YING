@@ -13,5 +13,14 @@
     "primaryUrl": "https://www.pacdora.cn/dielines",
     "primaryLabel": "前往 Pacdora（第三方）",
     "external": true
+  },
+  {
+    "id": 3,
+    "image": "/assets/tools-hero.svg",
+    "title": "在线包装设计工具",
+    "subtitle": "纸箱刀版预览与珍珠棉分层设计，在线确认尺寸和结构，再进入人工报价与生产审核。",
+    "primaryUrl": "/tools",
+    "primaryLabel": "进入在线工具",
+    "external": false
   }
 ]

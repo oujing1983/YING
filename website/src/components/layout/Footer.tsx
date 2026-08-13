@@ -20,7 +20,8 @@ export default function Footer() {
   }, []);
 
   const csPhone = contact.csPhone || contact.phone || "18005770078";
-  const wechatQr = contact.wechatQr;
+  const [qrFailed, setQrFailed] = useState(false);
+  const wechatQr = contact.wechatQr && !qrFailed ? contact.wechatQr : "/brand/wechat-qr.jpg";
 
   return (
     <>
@@ -34,19 +35,17 @@ export default function Footer() {
               className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center">
               <X size={14} />
             </button>
-            <img src={wechatQr} alt="微信二维码" className="w-32 h-32 object-contain" />
+            <img src={wechatQr} onError={() => setQrFailed(true)} alt="微信二维码" className="w-32 h-32 object-contain" />
             <p className="text-xs text-gray-500 text-center mt-2">扫码添加微信</p>
           </div>
         )}
 
         {/* WeChat Button */}
-        {wechatQr && (
-          <button onClick={() => setShowWechat(!showWechat)}
+        <button onClick={() => setShowWechat(!showWechat)}
             className="w-10 h-10 rounded-full bg-green-500 hover:bg-green-600 text-white flex items-center justify-center shadow-lg hover:shadow-green-500/30 transition-all"
             aria-label="微信咨询">
             <MessageCircle size={18} />
-          </button>
-        )}
+        </button>
 
         {/* Phone Button */}
         <a href={`tel:${csPhone}`}
@@ -63,13 +62,7 @@ export default function Footer() {
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                {site.logoImage ? (
-                  <img src={site.logoImage} alt="Logo" className="w-10 h-10 rounded-xl object-cover" />
-                ) : (
-                  <span className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-bold text-lg">
-                    {site.logo || "ZW"}
-                  </span>
-                )}
+                <img src={site.logoImage || "/brand/zwpack-logo.png"} onError={(event) => { event.currentTarget.src = "/brand/zwpack-logo.png"; }} alt="至微包装 Logo" className="w-10 h-10 rounded-xl object-cover" />
                 <div>
                   <span className="block text-sm font-semibold leading-tight">
                     {contact.company || "至微包装"}
@@ -83,12 +76,10 @@ export default function Footer() {
                 专注纸箱、气泡袋、珍珠棉包装产品定制，为客户提供高品质包装解决方案。
               </p>
               {/* QR Code in footer */}
-              {wechatQr && (
-                <div className="mt-4">
-                  <img src={wechatQr} alt="微信二维码" className="w-24 h-24 object-contain rounded-lg bg-white/5 p-1" />
+                <div className="mt-4 inline-flex flex-col items-center">
+                  <img src={wechatQr} onError={() => setQrFailed(true)} alt="微信二维码" className="w-24 h-24 object-contain rounded-lg bg-white p-1" />
                   <p className="text-xs text-white/40 mt-1">扫码添加微信</p>
                 </div>
-              )}
             </div>
 
             {/* Links */}

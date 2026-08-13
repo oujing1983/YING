@@ -249,6 +249,8 @@ function CarouselTab() {
   const [title, setTitle] = useState('')
   const [subtitle, setSubtitle] = useState('')
   const [newImage, setNewImage] = useState('')
+  const [primaryLabel, setPrimaryLabel] = useState('')
+  const [primaryUrl, setPrimaryUrl] = useState('')
   useEffect(() => { fetch('/api/admin/carousel').then(r => r.json()).then(setSlides) }, [])
 
   function updateSlide(id: number, key: string, value: string) {
@@ -275,9 +277,9 @@ function CarouselTab() {
   async function addSlide() {
     if (!title) { alert('请填写标题'); return }
     const img = newImage || 'https://images.unsplash.com/photo-1616401784845-180882ba9ba8?w=1920&q=80'
-    const updated = [...slides, { id: Date.now(), image: img, title, subtitle }]
+    const updated = [...slides, { id: Date.now(), image: img, title, subtitle, primaryLabel, primaryUrl, external: /^https?:\/\//.test(primaryUrl) }]
     if (!await saveSlides(updated)) return
-    setSlides(updated); setTitle(''); setSubtitle(''); setNewImage(''); alert('轮播图已保存，前台刷新后即可看到')
+    setSlides(updated); setTitle(''); setSubtitle(''); setNewImage(''); setPrimaryLabel(''); setPrimaryUrl(''); alert('轮播图已保存，前台刷新后即可看到')
   }
 
   async function removeSlide(id: number) {
@@ -293,6 +295,8 @@ function CarouselTab() {
       <div style={{ background: '#fff', borderRadius: 12, padding: 20, border: '1px solid #E2E8F0', marginBottom: 24 }}>
         <input placeholder="标题" value={title} onChange={e => setTitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 14, marginBottom: 8, boxSizing: 'border-box' }} />
         <input placeholder="副标题" value={subtitle} onChange={e => setSubtitle(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 14, marginBottom: 8, boxSizing: 'border-box' }} />
+        <input placeholder="按钮文字，例如：进入在线工具" value={primaryLabel} onChange={e => setPrimaryLabel(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 14, marginBottom: 8, boxSizing: 'border-box' }} />
+        <input placeholder="按钮链接，例如：/tools 或 https://example.com" value={primaryUrl} onChange={e => setPrimaryUrl(e.target.value)} style={{ width: '100%', padding: '10px 14px', borderRadius: 6, border: '1px solid #E2E8F0', fontSize: 14, marginBottom: 8, boxSizing: 'border-box' }} />
         <div style={{ marginBottom: 8 }}>
           <input type="file" accept="image/*" onChange={uploadSlideImage} style={{ fontSize: 13 }} />
           {newImage && <img src={newImage} alt="" style={{ width: 120, height: 70, objectFit: 'cover', borderRadius: 6, marginTop: 6, display: 'block' }} />}
@@ -305,6 +309,8 @@ function CarouselTab() {
           <div style={{ flex: 1, display: 'grid', gap: 6 }}>
             <input value={s.title || ''} onChange={e => updateSlide(s.id, 'title', e.target.value)} placeholder="轮播标题" style={{ width: '100%', padding: '7px 9px', borderRadius: 5, border: '1px solid #E2E8F0', fontSize: 13, boxSizing: 'border-box' }} />
             <textarea value={s.subtitle || ''} onChange={e => updateSlide(s.id, 'subtitle', e.target.value)} placeholder="轮播副标题" rows={2} style={{ width: '100%', padding: '7px 9px', borderRadius: 5, border: '1px solid #E2E8F0', fontSize: 12, resize: 'vertical', boxSizing: 'border-box' }} />
+            <input value={s.primaryLabel || ''} onChange={e => updateSlide(s.id, 'primaryLabel', e.target.value)} placeholder="按钮文字" style={{ width: '100%', padding: '7px 9px', borderRadius: 5, border: '1px solid #E2E8F0', fontSize: 12, boxSizing: 'border-box' }} />
+            <input value={s.primaryUrl || ''} onChange={e => setSlides(current => current.map(slide => slide.id === s.id ? { ...slide, primaryUrl: e.target.value, external: /^https?:\/\//.test(e.target.value) } : slide))} placeholder="按钮链接" style={{ width: '100%', padding: '7px 9px', borderRadius: 5, border: '1px solid #E2E8F0', fontSize: 12, boxSizing: 'border-box' }} />
           </div>
           <button onClick={async () => { if (await saveSlides()) alert('轮播图文案已保存') }} style={{ padding: '5px 12px', borderRadius: 6, border: 'none', background: '#2563EB', color: '#fff', fontSize: 12, cursor: 'pointer' }}>保存</button>
           <button onClick={() => removeSlide(s.id)} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #FCA5A5', background: '#FEF2F2', color: '#EF4444', fontSize: 12, cursor: 'pointer' }}>删除</button>

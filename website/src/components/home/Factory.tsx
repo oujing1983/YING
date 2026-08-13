@@ -14,8 +14,8 @@ const fallbackImgs = [
 ];
 
 const stats = [
-  { label: "年产量", value: "5000万+" },
-  { label: "服务客户", value: "1000+" },
+  { label: "年产量", value: "500万+" },
+  { label: "服务客户", value: "100+" },
   { label: "交期", value: "约6天" },
   { label: "起订量", value: "100㎡" },
 ];

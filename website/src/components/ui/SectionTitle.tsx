@@ -12,9 +12,9 @@ export default function SectionTitle({
   centered = true,
 }: SectionTitleProps) {
   return (
-    <div className={`max-w-2xl ${centered ? "mx-auto text-center" : ""} mb-14 md:mb-18`}>
+    <div className={`max-w-2xl ${centered ? "mx-auto text-center" : ""} mb-10 md:mb-14`}>
       {eyebrow && (
-        <span className="inline-block text-xs font-semibold text-tech-blue uppercase tracking-widest mb-3">
+        <span className="mb-3 inline-block text-[18px] font-semibold leading-[30px] tracking-[0.06em] text-tech-blue md:text-[22px]">
           {eyebrow}
         </span>
       )}

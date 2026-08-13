@@ -9,7 +9,7 @@ import { useSite } from "@/components/SiteProvider";
 const navLinks = [
   { label: "首页", href: "/" },
   { label: "产品中心", href: "/#products" },
-  { label: "在线刀版", href: "/tools/carton-dieline" },
+  { label: "在线工具", href: "/tools" },
   { label: "关于我们", href: "/about" },
   { label: "联系我们", href: "/contact" },
 ];
@@ -17,7 +17,10 @@ const navLinks = [
 export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
   const site = useSite();
+
+  useEffect(() => setLogoFailed(false), [site.logoImage]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -31,13 +34,12 @@ export default function Header() {
     }`}>
       <div className="container-wide flex items-center justify-between h-16 md:h-20">
         <Link href="/" className="flex items-center gap-3 group">
-          {site.logoImage ? (
-            <img src={site.logoImage} alt="Logo" className="h-10 w-auto group-hover:scale-105 transition-transform" />
-          ) : (
-            <span className="w-10 h-10 rounded-xl bg-tech-blue flex items-center justify-center text-white font-bold text-lg group-hover:scale-105 transition-transform">
-              {site.logo || "ZW"}
-            </span>
-          )}
+          <img
+            src={site.logoImage && !logoFailed ? site.logoImage : "/brand/zwpack-logo.png"}
+            alt="至微包装 Logo"
+            onError={() => setLogoFailed(true)}
+            className="h-10 w-10 rounded-[10px] object-cover shadow-sm transition-transform group-hover:scale-105"
+          />
           <span className="hidden sm:block">
             <span className="block text-sm font-semibold text-navy-500 leading-tight">至微包装</span>
             <span className="block text-xs text-gray-400 font-medium">ZW PACK</span>

@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import Hero from "@/components/home/Hero";
 import Products from "@/components/home/Products";
 import Advantages from "@/components/home/Advantages";
+import OnlineTools from "@/components/home/OnlineTools";
 import Industries from "@/components/home/Industries";
 import Process from "@/components/home/Process";
 import Factory from "@/components/home/Factory";
@@ -20,6 +21,7 @@ export default function Home() {
       <main>
         {toggles.showHero !== false && <Hero />}
         {toggles.showProducts !== false && <Products />}
+        <OnlineTools />
         {toggles.showAdvantages !== false && <Advantages />}
         {toggles.showIndustries !== false && <Industries />}
         {toggles.showProcess !== false && <Process />}

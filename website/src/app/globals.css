@@ -2,12 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @layer base {
   body {
     @apply bg-white text-navy-500 antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "SF Pro Display", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   }
 }
 
@@ -17,11 +15,11 @@
   }
   
   .section-padding {
-    @apply py-20 md:py-28;
+    @apply py-16 md:py-24;
   }
 
   .section-title {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-navy-500;
+    @apply text-3xl md:text-4xl font-bold tracking-tight text-navy-500;
   }
 
   .section-subtitle {
