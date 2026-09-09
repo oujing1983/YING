@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>珍珠棉分层设计 Demo</title>
-  <link rel="stylesheet" href="styles.css?v=20260908-5">
+  <link rel="stylesheet" href="styles.css?v=20260909-6">
 </head>
 <body>
   <main class="app-shell">
@@ -23,7 +23,7 @@
       <section>
         <div class="section-heading"><span>二维绘图</span><em>孔可以异形</em></div>
         <div class="operation-toggle" aria-label="绘图作用">
-          <button id="modeAdd">＋ 新增材料层</button>
+          <button id="modeAdd">＋ 增加材料</button>
           <button id="modeCut" class="active">－ 挖孔</button>
         </div>
         <div class="edit-actions">
@@ -59,7 +59,7 @@
         </div>
         <div class="action-row">
           <button id="toggleDimensions" class="secondary active">显示总尺寸</button>
-          <button id="toggleOtherLayers" class="secondary active">浏览其他层</button>
+          <button id="toggleOtherLayers" class="secondary">全部层结构</button>
           <button id="zoomOut" class="secondary" title="缩小画布">－</button>
           <button id="zoomIn" class="secondary" title="放大画布">＋</button>
           <button id="fitView" class="secondary">适合画布</button>
@@ -78,7 +78,7 @@
           </div>
           <small>长宽只调整当前层材料，开孔尺寸与位置保持独立，单位 mm。</small>
         </div>
-        <div class="auto-support-note"><strong>自动贴合</strong><span>主要面积有支撑才叠高；支撑不足会继续落到底板。</span></div>
+        <div class="auto-support-note"><strong>自动贴合</strong><span>主要面积有支撑才叠高；支撑不足会落到零高度基准面。</span></div>
         <div class="height-check"><span>层高合计</span><strong id="heightSum">40 mm</strong></div>
       </section>
 
@@ -111,7 +111,7 @@
           </div>
           <div class="summary">
             <div><span>外形</span><strong id="summarySize">390 × 250 × 40</strong><small>mm</small></div>
-            <div><span>层数</span><strong id="summaryLayers">3</strong><small>层</small></div>
+            <div><span>层数</span><strong id="summaryLayers">2</strong><small>层</small></div>
             <div><span>开孔</span><strong id="summaryHoles">1</strong><small>个</small></div>
           </div>
         </article>
@@ -119,7 +119,7 @@
     </section>
   </main>
   <script src="polygon-clipping.min.js"></script>
-  <script src="epe-geometry.js?v=20260908-5"></script>
-  <script src="app.js?v=20260908-5"></script>
+  <script src="epe-geometry.js?v=20260909-6"></script>
+  <script src="app.js?v=20260909-6"></script>
 </body>
 </html>

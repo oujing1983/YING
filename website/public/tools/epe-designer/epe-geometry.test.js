@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const polygonClipping = require('./polygon-clipping.min.js')
-const { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, supportHeight } = require('./epe-geometry.js')
+const { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId } = require('./epe-geometry.js')
 
 const stack = buildLayerStack([
   { name: '底板', h: 15 },
@@ -38,13 +38,8 @@ assert.equal(cutSpanFromLayerTop(stack[2], 25, 12), null, '下层开孔不能切
 assert.deepEqual(cutSpanFromLayerTop(stack[1], 25, 12), { bottom: 15, top: 25 })
 assert.deepEqual(cutSpanFromLayerTop(stack[0], 25, 12), { bottom: 13, top: 15 })
 
-const ordered = reorderOpeningLayer([
-  { id: 'base', base: true },
-  { id: 'a' },
-  { id: 'b' },
-], 2, 1)
-assert.deepEqual(ordered.map(x => x.id), ['base', 'b', 'a'])
-assert.deepEqual(reorderOpeningLayer(ordered, 1, 0).map(x => x.id), ['base', 'b', 'a'], '底板必须固定在最下方')
+const ordered = reorderOpeningLayer([{ id: 'a' }, { id: 'b' }], 1, 0)
+assert.deepEqual(ordered.map(x => x.id), ['b', 'a'])
 
 assert.deepEqual(nearestSnap([98, 150], [0, 100, 200], 5), { value: 100, target: 100 })
 assert.equal(nearestSnap([92], [100], 5), null)
@@ -67,3 +62,21 @@ const fullPlate = [[[[0, 0], [100, 0], [100, 80], [0, 80], [0, 0]]]]
 const narrowHighSupport = [[[[0, 0], [10, 0], [10, 80], [0, 80], [0, 0]]]]
 assert.equal(supportHeight(fullPlate, [{ geometry: outer, top: 15 }, { geometry: narrowHighSupport, top: 30 }], polygonClipping), 15, '窄小支撑不能把整张板托在高处')
 console.log('epe independent block support tests passed')
+
+const layersWithoutBase = [
+  { id: 'a', name: '开孔层 A', h: 20 },
+  { id: 'b', name: '材料层 2', h: 69 },
+]
+assert.deepEqual(materialLayers([{ id: 'base', base: true }, ...layersWithoutBase]), layersWithoutBase, '结构图和层列表不应显示底板')
+assert.equal(addedShapeLayerId('b'), 'b', '连续增加材料必须留在当前层')
+assert.deepEqual(reorderOpeningLayer(layersWithoutBase, 1, 0).map(x => x.id), ['b', 'a'], '没有底板后首层也必须可参与排序')
+
+const specs = layerDrawingSpecs(layersWithoutBase, [
+  { layerId: 'a', points: [[0, 0], [390, 0], [390, 250], [0, 250]] },
+  { layerId: 'b', points: [[20, 30], [79.1, 30], [79.1, 187.2], [20, 187.2]] },
+])
+assert.deepEqual(specs.map(x => ({ id: x.id, l: x.l, w: x.w, h: x.h })), [
+  { id: 'a', l: 390, w: 250, h: 20 },
+  { id: 'b', l: 59.1, w: 157.2, h: 69 },
+])
+console.log('epe visible layer and drawing sheet tests passed')

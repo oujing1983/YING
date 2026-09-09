@@ -26,7 +26,7 @@
   }
 
   function reorderOpeningLayer(layers, fromIndex, toIndex) {
-    if (fromIndex < 1 || toIndex < 1 || fromIndex >= layers.length || toIndex >= layers.length) return layers.slice()
+    if (fromIndex < 0 || toIndex < 0 || fromIndex >= layers.length || toIndex >= layers.length) return layers.slice()
     const next = layers.slice()
     const [layer] = next.splice(fromIndex, 1)
     next.splice(toIndex, 0, layer)
@@ -78,5 +78,24 @@
     return 0
   }
 
-  return { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, geometryArea, supportHeight }
+  function materialLayers(layers) {
+    return layers.filter(layer => !layer.base)
+  }
+
+  function addedShapeLayerId(activeLayerId) {
+    return activeLayerId
+  }
+
+  function layerDrawingSpecs(layers, solids) {
+    return materialLayers(layers).map(layer => {
+      const points = solids.filter(solid => solid.layerId === layer.id).flatMap(solid => solid.points || [])
+      if (!points.length) return { ...layer, l: 0, w: 0 }
+      const xs = points.map(point => Number(point[0]) || 0)
+      const ys = points.map(point => Number(point[1]) || 0)
+      const round = value => Math.round(value * 10) / 10
+      return { ...layer, l: round(Math.max(...xs) - Math.min(...xs)), w: round(Math.max(...ys) - Math.min(...ys)) }
+    })
+  }
+
+  return { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, geometryArea, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId }
 })
