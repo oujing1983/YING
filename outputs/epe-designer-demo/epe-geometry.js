@@ -97,6 +97,20 @@
     })
   }
 
+  function layerDrawingReport(layers, geometryByLayer, cuts = []) {
+    const stack = buildLayerStack(materialLayers(layers))
+    return layerDrawingSpecs(stack, geometryByLayer).map((layer, index) => {
+      const geometry = geometryByLayer[layer.id] || []
+      const depths = cuts.filter(cut => cut.layerId === layer.id).map(cut => Math.max(0, Number(cut.depth) || 0))
+      return {
+        ...layer,
+        order: index + 1,
+        openingCount: geometry.reduce((count, polygon) => count + Math.max(0, polygon.length - 1), 0),
+        maxCutDepth: depths.length ? Math.max(...depths) : 0,
+      }
+    })
+  }
+
   function edgeGeometryForSelection(selected, mergedGeometry) {
     if (!selected || selected.closed === false || !Array.isArray(selected.points) || selected.points.length < 2) return mergedGeometry
     const ring = selected.points.map(point => [point[0], point[1]])
@@ -128,5 +142,5 @@
     return positiveSideIsInside === Boolean(isHole) ? 1 : -1
   }
 
-  return { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, geometryArea, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId, edgeGeometryForSelection, edgeOffsetDirection }
+  return { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, geometryArea, supportHeight, materialLayers, layerDrawingSpecs, layerDrawingReport, addedShapeLayerId, edgeGeometryForSelection, edgeOffsetDirection }
 })

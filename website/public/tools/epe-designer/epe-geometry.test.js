@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const polygonClipping = require('./polygon-clipping.min.js')
-const { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId, edgeGeometryForSelection, edgeOffsetDirection } = require('./epe-geometry.js')
+const { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, supportHeight, materialLayers, layerDrawingSpecs, layerDrawingReport, addedShapeLayerId, edgeGeometryForSelection, edgeOffsetDirection } = require('./epe-geometry.js')
 
 const stack = buildLayerStack([
   { name: '底板', h: 15 },
@@ -82,6 +82,17 @@ assert.deepEqual(specs.map(x => ({ id: x.id, l: x.l, w: x.w, h: x.h })), [
 assert.deepEqual(layerDrawingSpecs([{ id: 'trimmed', h: 10 }], {
   trimmed: [[[[40, 0], [100, 0], [100, 80], [40, 80], [40, 0]]]],
 })[0], { id: 'trimmed', h: 10, l: 60, w: 80 }, '结构图尺寸必须来自切割后的成品几何')
+
+assert.deepEqual(layerDrawingReport(layersWithoutBase, {
+  a: [[[[0, 0], [390, 0], [390, 250], [0, 250], [0, 0]], [[100, 70], [270, 70], [270, 180], [100, 180], [100, 70]]]],
+  b: [[[[20, 30], [79.1, 30], [79.1, 187.2], [20, 187.2], [20, 30]]]],
+}, [
+  { layerId: 'a', depth: 10 },
+  { layerId: 'a', depth: 15 },
+]), [
+  { id: 'a', name: '开孔层 A', h: 20, l: 390, w: 250, order: 1, bottom: 0, top: 20, openingCount: 1, maxCutDepth: 15 },
+  { id: 'b', name: '材料层 2', h: 69, l: 59.1, w: 157.2, order: 2, bottom: 20, top: 89, openingCount: 0, maxCutDepth: 0 },
+], '工程图数据应包含层序、层高位置、成品尺寸和去重后的开孔数据')
 console.log('epe visible layer and drawing sheet tests passed')
 
 const mergedOutline = [[[[0, 0], [390, 0], [390, 250], [0, 250], [0, 0]]]]
