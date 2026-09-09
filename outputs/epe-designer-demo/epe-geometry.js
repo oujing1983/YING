@@ -86,9 +86,9 @@
     return activeLayerId
   }
 
-  function layerDrawingSpecs(layers, solids) {
+  function layerDrawingSpecs(layers, geometryByLayer) {
     return materialLayers(layers).map(layer => {
-      const points = solids.filter(solid => solid.layerId === layer.id).flatMap(solid => solid.points || [])
+      const points = (geometryByLayer[layer.id] || []).flat(2).filter(point => Array.isArray(point) && point.length >= 2)
       if (!points.length) return { ...layer, l: 0, w: 0 }
       const xs = points.map(point => Number(point[0]) || 0)
       const ys = points.map(point => Number(point[1]) || 0)
@@ -97,5 +97,36 @@
     })
   }
 
-  return { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, geometryArea, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId }
+  function edgeGeometryForSelection(selected, mergedGeometry) {
+    if (!selected || selected.closed === false || !Array.isArray(selected.points) || selected.points.length < 2) return mergedGeometry
+    const ring = selected.points.map(point => [point[0], point[1]])
+    const first = ring[0]
+    const last = ring[ring.length - 1]
+    if (first[0] !== last[0] || first[1] !== last[1]) ring.push([first[0], first[1]])
+    return [[ring]]
+  }
+
+  function pointInRing(point, ring) {
+    let inside = false
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const a = ring[i]
+      const b = ring[j]
+      if ((a[1] > point[1]) !== (b[1] > point[1]) && point[0] < (b[0] - a[0]) * (point[1] - a[1]) / ((b[1] - a[1]) || Number.EPSILON) + a[0]) inside = !inside
+    }
+    return inside
+  }
+
+  function edgeOffsetDirection(ring, a, b, isHole) {
+    const dx = b[0] - a[0]
+    const dy = b[1] - a[1]
+    const length = Math.hypot(dx, dy) || 1
+    const nx = -dy / length
+    const ny = dx / length
+    const probe = Math.max(0.5, Math.min(2, length * 0.02))
+    const midpoint = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+    const positiveSideIsInside = pointInRing([midpoint[0] + nx * probe, midpoint[1] + ny * probe], ring)
+    return positiveSideIsInside === Boolean(isHole) ? 1 : -1
+  }
+
+  return { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, geometryArea, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId, edgeGeometryForSelection, edgeOffsetDirection }
 })

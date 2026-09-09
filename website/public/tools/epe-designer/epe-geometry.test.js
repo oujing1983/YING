@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict')
 const polygonClipping = require('./polygon-clipping.min.js')
-const { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId } = require('./epe-geometry.js')
+const { buildLayerStack, cutSpanInLayer, cutSpanFromLayerTop, reorderOpeningLayer, nearestSnap, composeMaterial, polygonsOverlap, supportHeight, materialLayers, layerDrawingSpecs, addedShapeLayerId, edgeGeometryForSelection, edgeOffsetDirection } = require('./epe-geometry.js')
 
 const stack = buildLayerStack([
   { name: '底板', h: 15 },
@@ -71,12 +71,28 @@ assert.deepEqual(materialLayers([{ id: 'base', base: true }, ...layersWithoutBas
 assert.equal(addedShapeLayerId('b'), 'b', '连续增加材料必须留在当前层')
 assert.deepEqual(reorderOpeningLayer(layersWithoutBase, 1, 0).map(x => x.id), ['b', 'a'], '没有底板后首层也必须可参与排序')
 
-const specs = layerDrawingSpecs(layersWithoutBase, [
-  { layerId: 'a', points: [[0, 0], [390, 0], [390, 250], [0, 250]] },
-  { layerId: 'b', points: [[20, 30], [79.1, 30], [79.1, 187.2], [20, 187.2]] },
-])
+const specs = layerDrawingSpecs(layersWithoutBase, {
+  a: [[[[0, 0], [390, 0], [390, 250], [0, 250], [0, 0]]]],
+  b: [[[[20, 30], [79.1, 30], [79.1, 187.2], [20, 187.2], [20, 30]]]],
+})
 assert.deepEqual(specs.map(x => ({ id: x.id, l: x.l, w: x.w, h: x.h })), [
   { id: 'a', l: 390, w: 250, h: 20 },
   { id: 'b', l: 59.1, w: 157.2, h: 69 },
 ])
+assert.deepEqual(layerDrawingSpecs([{ id: 'trimmed', h: 10 }], {
+  trimmed: [[[[40, 0], [100, 0], [100, 80], [40, 80], [40, 0]]]],
+})[0], { id: 'trimmed', h: 10, l: 60, w: 80 }, '结构图尺寸必须来自切割后的成品几何')
 console.log('epe visible layer and drawing sheet tests passed')
+
+const mergedOutline = [[[[0, 0], [390, 0], [390, 250], [0, 250], [0, 0]]]]
+const selectedRectangle = { points: [[220, 40], [302.2, 40], [302.2, 202.4], [220, 202.4]] }
+assert.deepEqual(edgeGeometryForSelection(selectedRectangle, mergedOutline), [[[
+  [220, 40], [302.2, 40], [302.2, 202.4], [220, 202.4], [220, 40],
+]]], '边长模式应优先标注当前选中材料，而不是只标布尔合并后的外轮廓')
+assert.equal(edgeGeometryForSelection(null, mergedOutline), mergedOutline, '没有选中图形时保留最终材料轮廓标注')
+assert.equal(edgeGeometryForSelection({ points: [[0, 0], [50, 0], [50, 20]], closed: false }, mergedOutline), mergedOutline, '开放路径不能虚构闭合边长')
+
+const concaveRing = [[0, 0], [100, 0], [100, 100], [70, 100], [70, 30], [30, 30], [30, 100], [0, 100], [0, 0]]
+assert.equal(edgeOffsetDirection(concaveRing, [70, 30], [30, 30], false), -1, '凹形内边的尺寸线必须朝材料外侧')
+assert.equal(edgeOffsetDirection(concaveRing, [70, 30], [30, 30], true), 1, '孔轮廓尺寸线应朝孔内侧')
+console.log('epe selected edge dimension test passed')
